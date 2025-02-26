@@ -84,3 +84,4 @@ workspace/**
 
 # ingore temporary data files
 *.dat
+*.zip
