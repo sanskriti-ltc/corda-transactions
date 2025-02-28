@@ -24,6 +24,7 @@ import java.security.PublicKey;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -83,8 +84,8 @@ public class IOUIssueFlow implements ClientStartableFlow {
                     draweeInfo.getName(),
                     drawerInfo.getName(),
                     payeeInfo.getName(),
-                    LocalDate.parse(flowArgs.getIssueDate()),
-                    LocalDate.parse(flowArgs.getDueDate()),
+                    LocalDate.parse(flowArgs.getIssueDate().toString()),
+                    LocalDate.parse(flowArgs.getDueDate().toString()),
                     flowArgs.getAcceptance(),
                     flowArgs.getAvailisation(),
                     flowArgs.getEndorsements(),
@@ -96,7 +97,7 @@ public class IOUIssueFlow implements ClientStartableFlow {
             log.info("PASS 1");
             // Obtain the Notary name and public key.
             NotaryInfo notary = requireNonNull(
-                    notaryLookup.lookup(MemberX500Name.parse("CN=NotaryService, OU=Test Dept, O=R3, L=London, C=GB")),
+                    notaryLookup.lookup(MemberX500Name.parse("CN=NotaryRep1, OU=Notary Dept, O=R3, L=London, C=GB")),
                     "NotaryLookup can't find notary specified in flow arguments."
             );
 
