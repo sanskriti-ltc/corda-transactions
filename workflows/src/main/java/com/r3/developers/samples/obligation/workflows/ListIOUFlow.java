@@ -34,14 +34,23 @@ public class ListIOUFlow implements ClientStartableFlow {
         log.info("ListIOUFlow.call() called");
 
         // Queries the VNode's vault for unconsumed states and converts the result to a serializable DTO.
-        List<StateAndRef<IOUState>> states = utxoLedgerService.findUnconsumedStatesByExactType(IOUState.class,100, Instant.now()).getResults();
+        List<StateAndRef<IOUState>> states = utxoLedgerService.findUnconsumedStatesByExactType(IOUState.class, 100, Instant.now()).getResults();
         List<ListIOUFlowResults> results = states.stream().map(stateAndRef ->
                 new ListIOUFlowResults(
                         stateAndRef.getState().getContractState().getLinearId(),
                         stateAndRef.getState().getContractState().getAmount(),
-                        stateAndRef.getState().getContractState().getBorrower().toString(),
-                        stateAndRef.getState().getContractState().getLender().toString(),
-                        stateAndRef.getState().getContractState().getPaid()
+                        stateAndRef.getState().getContractState().getCurrency(),
+                        stateAndRef.getState().getContractState().getDrawee().toString(),
+                        stateAndRef.getState().getContractState().getDrawer().toString(),
+                        stateAndRef.getState().getContractState().getPayee().toString(),
+                        stateAndRef.getState().getContractState().getIssueDate(),
+                        stateAndRef.getState().getContractState().getDueDate(),
+                        stateAndRef.getState().getContractState().getAcceptance().toString(),
+                        stateAndRef.getState().getContractState().getAvailisation().toString(),
+                        stateAndRef.getState().getContractState().getEndorsements(),
+                        stateAndRef.getState().getContractState().getBoeDocs(),
+                        stateAndRef.getState().getContractState().getTermsAndConditions(),
+                        stateAndRef.getState().getContractState().getIso2022Message()
                 )
         ).collect(Collectors.toList());
 

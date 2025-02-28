@@ -12,12 +12,8 @@ public class IOUIssueFlowArgs {
     private String payee;
     private LocalDate issueDate;
     private LocalDate dueDate;
-    private String acceptance;
-    private String availisation;
     private List<String> endorsements;
-    private String boeDocs;
     private String termsAndConditions;
-    private String iso2022Message;
 
     public IOUIssueFlowArgs() {
     }
@@ -30,12 +26,8 @@ public class IOUIssueFlowArgs {
         this.payee = payee;
         this.issueDate = issueDate;
         this.dueDate = dueDate;
-        this.acceptance = acceptance;
-        this.availisation = availisation;
         this.endorsements = endorsements;
-        this.boeDocs = boeDocs;
         this.termsAndConditions = termsAndConditions;
-        this.iso2022Message = iso2022Message;
     }
 
     public String getAmount() {
@@ -66,27 +58,11 @@ public class IOUIssueFlowArgs {
         return dueDate;
     }
 
-    public String getAcceptance() {
-        return acceptance;
-    }
-
-    public String getAvailisation() {
-        return availisation;
-    }
-
     public List<String> getEndorsements() {
         return endorsements;
     }
 
-    public String getBoeDocs() {
-        return boeDocs;
-    }
-
     public String getTermsAndConditions() {
         return termsAndConditions;
-    }
-
-    public String getIso2022Message() {
-        return iso2022Message;
     }
 }
