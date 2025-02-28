@@ -78,7 +78,6 @@ public class IOUIssueFlow implements ClientStartableFlow {
             log.info("PASS 0");
             // Create the IOUState from the input arguments and member information.
             IOUState iou = new IOUState(
-                    flowArgs.getId(),
                     Integer.parseInt(flowArgs.getAmount()),
                     flowArgs.getCurrency(),
                     draweeInfo.getName(),
@@ -153,7 +152,6 @@ RequestBody for triggering the flow via http-rpc:
     "clientRequestId": "createiou-1",
     "flowClassName": "com.r3.developers.samples.obligation.workflows.IOUIssueFlow",
     "requestBody": {
-        "id": "some-unique-id",
         "amount":"1000",
         "currency": "INR",
         "drawee":"CN=LBG, O=Lloyds Banking Group, L=London, C=GB",

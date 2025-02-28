@@ -18,7 +18,6 @@ import java.util.UUID;
 public class IOUState implements ContractState {
 
     // Private variables
-    private final String id;
     private final int amount;
     private final String currency;
     private final MemberX500Name drawee;
@@ -36,8 +35,7 @@ public class IOUState implements ContractState {
     private final List<PublicKey> participants;
 
     @ConstructorForDeserialization
-    public IOUState(String id, int amount, String currency, MemberX500Name drawee, MemberX500Name drawer, MemberX500Name payee, ZonedDateTime issueDate, ZonedDateTime dueDate, String acceptance, String availisation, List<String> endorsements, String boeDocs, String termsAndConditions, String iso2022Message, UUID linearId, List<PublicKey> participants) {
-        this.id = id;
+    public IOUState(int amount, String currency, MemberX500Name drawee, MemberX500Name drawer, MemberX500Name payee, ZonedDateTime issueDate, ZonedDateTime dueDate, String acceptance, String availisation, List<String> endorsements, String boeDocs, String termsAndConditions, String iso2022Message, UUID linearId, List<PublicKey> participants) {
         this.amount = amount;
         this.currency = currency;
         this.drawee = drawee;
@@ -55,8 +53,7 @@ public class IOUState implements ContractState {
         this.participants = participants;
     }
 
-    public IOUState(String id, int amount, String currency, MemberX500Name drawee, MemberX500Name drawer, MemberX500Name payee, LocalDate issueDate, LocalDate dueDate, String acceptance, String availisation, List<String> endorsements, String boeDocs, String termsAndConditions, String iso2022Message, List<PublicKey> participants) {
-        this.id = id;
+    public IOUState(int amount, String currency, MemberX500Name drawee, MemberX500Name drawer, MemberX500Name payee, LocalDate issueDate, LocalDate dueDate, String acceptance, String availisation, List<String> endorsements, String boeDocs, String termsAndConditions, String iso2022Message, List<PublicKey> participants) {
         this.amount = amount;
         this.currency = currency;
         this.drawee = drawee;
@@ -72,10 +69,6 @@ public class IOUState implements ContractState {
         this.iso2022Message = iso2022Message;
         this.linearId = UUID.randomUUID();
         this.participants = participants;
-    }
-
-    public String getId() {
-        return id;
     }
 
     public int getAmount() {
@@ -142,12 +135,12 @@ public class IOUState implements ContractState {
     // Helper method for settle flow
     public IOUState pay(int amountToPay) {
         int newAmountPaid = this.amount - amountToPay;
-        return new IOUState(id, newAmountPaid, currency, drawee, drawer, payee, issueDate, dueDate, acceptance, availisation, endorsements, boeDocs, termsAndConditions, iso2022Message, linearId, participants);
+        return new IOUState(newAmountPaid, currency, drawee, drawer, payee, issueDate, dueDate, acceptance, availisation, endorsements, boeDocs, termsAndConditions, iso2022Message, linearId, participants);
     }
 
     // Helper method for transfer flow
     public IOUState withNewDrawee(MemberX500Name newDrawee, List<PublicKey> newParticipants) {
-        return new IOUState(id, amount, currency, newDrawee, drawer, payee, issueDate, dueDate, acceptance, availisation, endorsements, boeDocs, termsAndConditions, iso2022Message, linearId, newParticipants);
+        return new IOUState(amount, currency, newDrawee, drawer, payee, issueDate, dueDate, acceptance, availisation, endorsements, boeDocs, termsAndConditions, iso2022Message, linearId, newParticipants);
     }
 
     // Helper method to convert LocalDate to ZonedDateTime in UTC
