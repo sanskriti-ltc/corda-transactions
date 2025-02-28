@@ -81,7 +81,8 @@ public class IOUIssueFlow implements ClientStartableFlow {
             IOUState iou = new IOUState(
                     Integer.parseInt(flowArgs.getAmount()),
                     flowArgs.getCurrency(),
-                    draweeInfo.getName(),
+                    // draweeInfo.getName(),
+                    myInfo.getName(),
                     drawerInfo.getName(),
                     payeeInfo.getName(),
                     LocalDate.parse(flowArgs.getIssueDate().toString()),
@@ -92,7 +93,7 @@ public class IOUIssueFlow implements ClientStartableFlow {
                     flowArgs.getBoeDocs(),
                     flowArgs.getTermsAndConditions(),
                     flowArgs.getIso2022Message(),
-                    Arrays.asList(myInfo.getLedgerKeys().get(0), draweeInfo.getLedgerKeys().get(0), drawerInfo.getLedgerKeys().get(0), payeeInfo.getLedgerKeys().get(0))
+                    Arrays.asList(myInfo.getLedgerKeys().get(0), draweeInfo.getLedgerKeys().get(0), payeeInfo.getLedgerKeys().get(0))
             );
             log.info("PASS 1");
             // Obtain the Notary name and public key.
