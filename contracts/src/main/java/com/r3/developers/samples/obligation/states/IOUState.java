@@ -7,9 +7,11 @@ import net.corda.v5.ledger.utxo.BelongsToContract;
 import net.corda.v5.ledger.utxo.ContractState;
 
 import java.security.PublicKey;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.time.LocalDate;
 
 //Link with the Contract class
 @BelongsToContract(IOUContract.class)
@@ -22,8 +24,8 @@ public class IOUState implements ContractState {
     private final MemberX500Name drawee;
     private final MemberX500Name drawer;
     private final MemberX500Name payee;
-    private final LocalDate issueDate;
-    private final LocalDate dueDate;
+    private final ZonedDateTime issueDate;
+    private final ZonedDateTime dueDate;
     private final String acceptance;
     private final String availisation;
     private final List<String> endorsements;
@@ -34,7 +36,7 @@ public class IOUState implements ContractState {
     private final List<PublicKey> participants;
 
     @ConstructorForDeserialization
-    public IOUState(String id, int amount, String currency, MemberX500Name drawee, MemberX500Name drawer, MemberX500Name payee, LocalDate issueDate, LocalDate dueDate, String acceptance, String availisation, List<String> endorsements, String boeDocs, String termsAndConditions, String iso2022Message, UUID linearId, List<PublicKey> participants) {
+    public IOUState(String id, int amount, String currency, MemberX500Name drawee, MemberX500Name drawer, MemberX500Name payee, ZonedDateTime issueDate, ZonedDateTime dueDate, String acceptance, String availisation, List<String> endorsements, String boeDocs, String termsAndConditions, String iso2022Message, UUID linearId, List<PublicKey> participants) {
         this.id = id;
         this.amount = amount;
         this.currency = currency;
@@ -60,8 +62,8 @@ public class IOUState implements ContractState {
         this.drawee = drawee;
         this.drawer = drawer;
         this.payee = payee;
-        this.issueDate = issueDate;
-        this.dueDate = dueDate;
+        this.issueDate = convertToUTC(issueDate);
+        this.dueDate = convertToUTC(dueDate);
         this.acceptance = acceptance;
         this.availisation = availisation;
         this.endorsements = endorsements;
@@ -96,11 +98,11 @@ public class IOUState implements ContractState {
         return payee;
     }
 
-    public LocalDate getIssueDate() {
+    public ZonedDateTime getIssueDate() {
         return issueDate;
     }
 
-    public LocalDate getDueDate() {
+    public ZonedDateTime getDueDate() {
         return dueDate;
     }
 
@@ -146,5 +148,10 @@ public class IOUState implements ContractState {
     // Helper method for transfer flow
     public IOUState withNewDrawee(MemberX500Name newDrawee, List<PublicKey> newParticipants) {
         return new IOUState(id, amount, currency, newDrawee, drawer, payee, issueDate, dueDate, acceptance, availisation, endorsements, boeDocs, termsAndConditions, iso2022Message, linearId, newParticipants);
+    }
+
+    // Helper method to convert LocalDate to ZonedDateTime in UTC
+    private ZonedDateTime convertToUTC(LocalDate date) {
+        return date.atStartOfDay(ZoneId.of("UTC"));
     }
 }
