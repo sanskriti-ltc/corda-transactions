@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import java.security.PublicKey;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -60,19 +61,38 @@ public class IOUIssueFlow implements ClientStartableFlow {
             // Obtain the deserialized input arguments to the flow from the requestBody.
             IOUIssueFlowArgs flowArgs = requestBody.getRequestBodyAs(jsonMarshallingService, IOUIssueFlowArgs.class);
 
-            // Get MemberInfos for the Vnode running the flow and the otherMember.
+            // Get MemberInfos for the Vnode running the flow and the other members.
             MemberInfo myInfo = memberLookup.myInfo();
-            MemberInfo lenderInfo = requireNonNull(
-                    memberLookup.lookup(MemberX500Name.parse(flowArgs.getLender())),
-                    "MemberLookup can't find otherMember specified in flow arguments."
+            MemberInfo draweeInfo = requireNonNull(
+                    memberLookup.lookup(MemberX500Name.parse(flowArgs.getDrawee())),
+                    "MemberLookup can't find drawee specified in flow arguments."
+            );
+            MemberInfo drawerInfo = requireNonNull(
+                    memberLookup.lookup(MemberX500Name.parse(flowArgs.getDrawer())),
+                    "MemberLookup can't find drawer specified in flow arguments."
+            );
+            MemberInfo payeeInfo = requireNonNull(
+                    memberLookup.lookup(MemberX500Name.parse(flowArgs.getPayee())),
+                    "MemberLookup can't find payee specified in flow arguments."
             );
             log.info("PASS 0");
             // Create the IOUState from the input arguments and member information.
             IOUState iou = new IOUState(
+                    flowArgs.getId(),
                     Integer.parseInt(flowArgs.getAmount()),
-                    lenderInfo.getName(),
-                    myInfo.getName(),
-                    Arrays.asList(myInfo.getLedgerKeys().get(0), lenderInfo.getLedgerKeys().get(0))
+                    flowArgs.getCurrency(),
+                    draweeInfo.getName(),
+                    drawerInfo.getName(),
+                    payeeInfo.getName(),
+                    LocalDate.parse(flowArgs.getIssueDate()),
+                    LocalDate.parse(flowArgs.getDueDate()),
+                    flowArgs.getAcceptance(),
+                    flowArgs.getAvailisation(),
+                    flowArgs.getEndorsements(),
+                    flowArgs.getBoeDocs(),
+                    flowArgs.getTermsAndConditions(),
+                    flowArgs.getIso2022Message(),
+                    Arrays.asList(myInfo.getLedgerKeys().get(0), draweeInfo.getLedgerKeys().get(0), drawerInfo.getLedgerKeys().get(0), payeeInfo.getLedgerKeys().get(0))
             );
             log.info("PASS 1");
             // Obtain the Notary name and public key.
@@ -82,7 +102,7 @@ public class IOUIssueFlow implements ClientStartableFlow {
             );
 
             log.info("PASS 2");
-            PublicKey notaryKey = notary.getPublicKey();;
+            PublicKey notaryKey = notary.getPublicKey();
             for(MemberInfo memberInfo: memberLookup.lookup()){
                 if(!memberInfo.getLedgerKeys().isEmpty()) {
                     if (Objects.equals(
@@ -117,7 +137,7 @@ public class IOUIssueFlow implements ClientStartableFlow {
             // Call FinalizeIOUSubFlow which will finalise the transaction.
             // If successful the flow will return a String of the created transaction id,
             // if not successful it will return an error message.
-            return flowEngine.subFlow(new FinalizeIOUFlow.FinalizeIOU(signedTransaction, Arrays.asList(lenderInfo.getName())));
+            return flowEngine.subFlow(new FinalizeIOUFlow.FinalizeIOU(signedTransaction, Arrays.asList(draweeInfo.getName(), drawerInfo.getName())));
         }
         // Catch any exceptions, log them and rethrow the exception.
         catch (Exception e) {
@@ -126,14 +146,28 @@ public class IOUIssueFlow implements ClientStartableFlow {
         }
     }
 }
+
 /*
 RequestBody for triggering the flow via http-rpc:
 {
     "clientRequestId": "createiou-1",
     "flowClassName": "com.r3.developers.samples.obligation.workflows.IOUIssueFlow",
     "requestBody": {
-        "amount":"20",
-        "lender":"CN=Bob, OU=Test Dept, O=R3, L=London, C=GB"
+        "id": "some-unique-id",
+        "amount":"1000",
+        "currency": "INR",
+        "drawee":"CN=LBG, O=Lloyds Banking Group, L=London, C=GB",
+        "drawer":"CN=ABC imports, O=ABC imports, L=Delhi, C=IN",
+        "payee":"CN=Global Exports, O=Global Exports, L=London, C=GB",
+        "issueDate": "2025-02-20",
+        "dueDate": "2024-09-30",
+        "acceptance": "Accepted by LBG on 2025-02-21",
+        "availisation": "Guaranteed by ICICI Bank",
+        "endorsements": [],
+        "boeDocs": "automated",
+        "termsAndConditions": "Payment due on demand or by the specified due date. Interest rate of 5% per annum if unpaid by due date",
+        "iso2022Message": "<Document><PmtInf><InstrId>BEX123456</InstrId><EndToEndId>E2E123456</EndToEndId><InstdAmt Ccy=\"INR\">1000</InstdAmt></PmtInf></Document>"
         }
 }
- */
+*/
+
