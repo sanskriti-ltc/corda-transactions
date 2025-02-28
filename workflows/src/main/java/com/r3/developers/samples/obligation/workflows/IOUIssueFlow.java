@@ -81,19 +81,15 @@ public class IOUIssueFlow implements ClientStartableFlow {
             IOUState iou = new IOUState(
                     Integer.parseInt(flowArgs.getAmount()),
                     flowArgs.getCurrency(),
-                    // draweeInfo.getName(),
-                    myInfo.getName(),
+                    draweeInfo.getName(),
+                    // myInfo.getName(),
                     drawerInfo.getName(),
                     payeeInfo.getName(),
                     LocalDate.parse(flowArgs.getIssueDate().toString()),
                     LocalDate.parse(flowArgs.getDueDate().toString()),
-                    flowArgs.getAcceptance(),
-                    flowArgs.getAvailisation(),
                     flowArgs.getEndorsements(),
-                    flowArgs.getBoeDocs(),
                     flowArgs.getTermsAndConditions(),
-                    flowArgs.getIso2022Message(),
-                    Arrays.asList(myInfo.getLedgerKeys().get(0), draweeInfo.getLedgerKeys().get(0), payeeInfo.getLedgerKeys().get(0))
+                    Arrays.asList(drawerInfo.getLedgerKeys().get(0), draweeInfo.getLedgerKeys().get(0), payeeInfo.getLedgerKeys().get(0))
             );
             log.info("PASS 1");
             // Obtain the Notary name and public key.
@@ -138,7 +134,7 @@ public class IOUIssueFlow implements ClientStartableFlow {
             // Call FinalizeIOUSubFlow which will finalise the transaction.
             // If successful the flow will return a String of the created transaction id,
             // if not successful it will return an error message.
-            return flowEngine.subFlow(new FinalizeIOUFlow.FinalizeIOU(signedTransaction, Arrays.asList(draweeInfo.getName(), drawerInfo.getName())));
+            return flowEngine.subFlow(new FinalizeIOUFlow.FinalizeIOU(signedTransaction, Arrays.asList(draweeInfo.getName(), payeeInfo.getName())));
         }
         // Catch any exceptions, log them and rethrow the exception.
         catch (Exception e) {
@@ -154,20 +150,16 @@ RequestBody for triggering the flow via http-rpc:
     "clientRequestId": "createiou-1",
     "flowClassName": "com.r3.developers.samples.obligation.workflows.IOUIssueFlow",
     "requestBody": {
-        "amount":"1000",
+        "amount": "1000",
         "currency": "INR",
-        "drawee":"CN=LBG, O=Lloyds Banking Group, L=London, C=GB",
-        "drawer":"CN=ABC imports, O=ABC imports, L=Delhi, C=IN",
-        "payee":"CN=Global Exports, O=Global Exports, L=London, C=GB",
-        "issueDate": "2025-02-20",
-        "dueDate": "2024-09-30",
-        "acceptance": "Accepted by LBG on 2025-02-21",
-        "availisation": "Guaranteed by ICICI Bank",
+        "drawee": "CN=LBG Bank, OU=Banking Dept, O=Lloyds Banking Group, L=London, C=GB",
+        "drawer": "CN=ABC Imports, OU=Imports Dept, O=ABC Imports, L=India, C=IN",
+        "payee": "CN=Global Exports, OU=Exports Dept, O=Global Exports, L=London, C=GB",
+        "issueDate": "2024-02-20",
+        "dueDate": "2025-09-30",
         "endorsements": [],
-        "boeDocs": "automated",
-        "termsAndConditions": "Payment due on demand or by the specified due date. Interest rate of 5% per annum if unpaid by due date",
-        "iso2022Message": "<Document><PmtInf><InstrId>BEX123456</InstrId><EndToEndId>E2E123456</EndToEndId><InstdAmt Ccy=\"INR\">1000</InstdAmt></PmtInf></Document>"
-        }
+        "termsAndConditions": "Payment due on demand or by the specified due date. Interest rate of 5% per annum if unpaid by due date"
+    }
 }
 */
 
