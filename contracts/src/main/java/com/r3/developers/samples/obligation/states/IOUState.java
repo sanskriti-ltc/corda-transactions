@@ -7,37 +7,85 @@ import net.corda.v5.ledger.utxo.BelongsToContract;
 import net.corda.v5.ledger.utxo.ContractState;
 
 import java.security.PublicKey;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
-//Link with the Contract class
 @BelongsToContract(IOUContract.class)
 public class IOUState implements ContractState {
 
-    //private variables
-    public final int amount;
-    public final MemberX500Name lender;
-    public final MemberX500Name borrower;
-    public final int paid;
-    private final UUID linearId;
-    public List<PublicKey> participants;
+    // Enum for issuer roles
+    public enum IssuerRole {
+        DRAWER, DRAWE, PAYER, PAYEE, DRAWE_REG, PAYEE_REG
+    }
 
+    // Private variables
+    private final int amount;
+    private final String currency;
+    private final MemberX500Name drawee;
+    private final MemberX500Name drawer;
+    private final MemberX500Name payee;
+    private final MemberX500Name payer;
+    private final String payee_reg;
+    private final String drawee_reg;
+    private final IssuerRole issuerRole;
+    private final ZonedDateTime issueDate;
+    private final ZonedDateTime dueDate;
+    private final Boolean acceptance;
+    private final Boolean availisation;
+    private final Boolean paid;
+    private final List<String> endorsements;
+    private final String boeDocs;
+    private final String termsAndConditions;
+    private final String iso2022Message;
+    private final UUID linearId;
+    private final List<PublicKey> participants;
 
     @ConstructorForDeserialization
-    public IOUState(int amount, MemberX500Name lender, MemberX500Name borrower, int paid, UUID linearId, List<PublicKey> participants) {
+    public IOUState(int amount, String currency, MemberX500Name drawee, MemberX500Name drawer, MemberX500Name payee, MemberX500Name payer, String payee_reg, String drawee_reg, IssuerRole issuerRole, ZonedDateTime issueDate, ZonedDateTime dueDate, Boolean acceptance, Boolean availisation, Boolean paid, List<String> endorsements, String boeDocs, String termsAndConditions, String iso2022Message, UUID linearId, List<PublicKey> participants) {
         this.amount = amount;
-        this.lender = lender;
-        this.borrower = borrower;
+        this.currency = currency;
+        this.drawee = drawee;
+        this.drawer = drawer;
+        this.payee = payee;
+        this.payer = payer;
+        this.payee_reg = payee_reg;
+        this.drawee_reg = drawee_reg;
+        this.issuerRole = issuerRole;
+        this.issueDate = issueDate;
+        this.dueDate = dueDate;
+        this.acceptance = acceptance;
+        this.availisation = availisation;
         this.paid = paid;
+        this.endorsements = endorsements;
+        this.boeDocs = boeDocs;
+        this.termsAndConditions = termsAndConditions;
+        this.iso2022Message = iso2022Message;
         this.linearId = linearId;
         this.participants = participants;
     }
 
-    public IOUState(int amount, MemberX500Name lender, MemberX500Name borrower, List<PublicKey> participants) {
+    public IOUState(int amount, String currency, MemberX500Name drawee, MemberX500Name drawer, MemberX500Name payee, MemberX500Name payer, String payee_reg, String drawee_reg, IssuerRole issuerRole, LocalDate issueDate, LocalDate dueDate, List<String> endorsements, String termsAndConditions, List<PublicKey> participants) {
         this.amount = amount;
-        this.lender = lender;
-        this.borrower = borrower;
-        this.paid = 0;
+        this.currency = currency;
+        this.drawee = drawee;
+        this.drawer = drawer;
+        this.payee = payee;
+        this.payer = payer;
+        this.payee_reg = payee_reg;
+        this.drawee_reg = drawee_reg;
+        this.issuerRole = issuerRole;
+        this.issueDate = convertToUTC(issueDate);
+        this.dueDate = convertToUTC(dueDate);
+        this.acceptance = false;
+        this.availisation = false;
+        this.paid = false;
+        this.endorsements = endorsements;
+        this.boeDocs = "automatedBoeDocs";
+        this.termsAndConditions = termsAndConditions;
+        this.iso2022Message = "automatedIso2022Message";
         this.linearId = UUID.randomUUID();
         this.participants = participants;
     }
@@ -46,16 +94,72 @@ public class IOUState implements ContractState {
         return amount;
     }
 
-    public MemberX500Name getLender() {
-        return lender;
+    public String getCurrency() {
+        return currency;
     }
 
-    public MemberX500Name getBorrower() {
-        return borrower;
+    public MemberX500Name getDrawee() {
+        return drawee;
     }
 
-    public int getPaid() {
+    public MemberX500Name getDrawer() {
+        return drawer;
+    }
+
+    public MemberX500Name getPayee() {
+        return payee;
+    }
+
+    public MemberX500Name getPayer() {
+        return payer;
+    }
+
+    public String getPayeeReg() {
+        return payee_reg;
+    }
+
+    public String getDraweeReg() {
+        return drawee_reg;
+    }
+
+    public IssuerRole getIssuerRole() {
+        return issuerRole;
+    }
+
+    public ZonedDateTime getIssueDate() {
+        return issueDate;
+    }
+
+    public ZonedDateTime getDueDate() {
+        return dueDate;
+    }
+
+    public Boolean getAcceptance() {
+        return acceptance;
+    }
+
+    public Boolean getAvailisation() {
+        return availisation;
+    }
+
+    public Boolean getPaid() {
         return paid;
+    }
+
+    public List<String> getEndorsements() {
+        return endorsements;
+    }
+
+    public String getBoeDocs() {
+        return boeDocs;
+    }
+
+    public String getTermsAndConditions() {
+        return termsAndConditions;
+    }
+
+    public String getIso2022Message() {
+        return iso2022Message;
     }
 
     public UUID getLinearId() {
@@ -67,15 +171,19 @@ public class IOUState implements ContractState {
         return participants;
     }
 
-    //Helper method for settle flow
+    // Helper method for settle flow
     public IOUState pay(int amountToPay) {
-        int newAmountPaid = this.paid + (amountToPay);
-        return new IOUState(amount, lender, borrower, newAmountPaid,this.linearId,this.participants);
+        int newAmountPaid = this.amount - amountToPay;
+        return new IOUState(newAmountPaid, currency, drawee, drawer, payee, payer, payee_reg, drawee_reg, issuerRole, issueDate, dueDate, acceptance, availisation, paid, endorsements, boeDocs, termsAndConditions, iso2022Message, linearId, participants);
     }
 
-    //Helper method for transfer flow
-    public IOUState withNewLender(MemberX500Name newLender, List<PublicKey> newParticipants) {
-        return new IOUState(amount, newLender, borrower, paid,linearId,newParticipants);
+    // Helper method for transfer flow
+    public IOUState withNewDrawee(MemberX500Name newDrawee, List<PublicKey> newParticipants) {
+        return new IOUState(amount, currency, newDrawee, drawer, payee, payer, payee_reg, drawee_reg, issuerRole, issueDate, dueDate, acceptance, availisation, paid, endorsements, boeDocs, termsAndConditions, iso2022Message, linearId, newParticipants);
     }
 
+    // Helper method to convert LocalDate to ZonedDateTime in UTC
+    private ZonedDateTime convertToUTC(LocalDate date) {
+        return date.atStartOfDay(ZoneId.of("UTC"));
+    }
 }
