@@ -16,11 +16,6 @@ import java.util.UUID;
 @BelongsToContract(IOUContract.class)
 public class IOUState implements ContractState {
 
-    // Enum for issuer roles
-    public enum IssuerRole {
-        DRAWER, DRAWE, PAYER, PAYEE, DRAWE_REG, PAYEE_REG
-    }
-
     // Private variables
     private final int amount;
     private final String currency;
@@ -30,7 +25,6 @@ public class IOUState implements ContractState {
     private final MemberX500Name payer;
     private final String payee_reg;
     private final String drawee_reg;
-    private final IssuerRole issuerRole;
     private final ZonedDateTime issueDate;
     private final ZonedDateTime dueDate;
     private final Boolean acceptance;
@@ -44,16 +38,12 @@ public class IOUState implements ContractState {
     private final List<PublicKey> participants;
 
     @ConstructorForDeserialization
-    public IOUState(int amount, String currency, MemberX500Name drawee, MemberX500Name drawer, MemberX500Name payee, MemberX500Name payer, String payee_reg, String drawee_reg, IssuerRole issuerRole, ZonedDateTime issueDate, ZonedDateTime dueDate, Boolean acceptance, Boolean availisation, Boolean paid, List<String> endorsements, String boeDocs, String termsAndConditions, String iso2022Message, UUID linearId, List<PublicKey> participants) {
+    public IOUState(int amount, String currency, MemberX500Name drawee, MemberX500Name drawer, MemberX500Name payee, ZonedDateTime issueDate, ZonedDateTime dueDate, Boolean acceptance, Boolean availisation, Boolean paid, List<String> endorsements, String boeDocs, String termsAndConditions, String iso2022Message, UUID linearId, List<PublicKey> participants) {
         this.amount = amount;
         this.currency = currency;
         this.drawee = drawee;
         this.drawer = drawer;
         this.payee = payee;
-        this.payer = payer;
-        this.payee_reg = payee_reg;
-        this.drawee_reg = drawee_reg;
-        this.issuerRole = issuerRole;
         this.issueDate = issueDate;
         this.dueDate = dueDate;
         this.acceptance = acceptance;
@@ -67,16 +57,12 @@ public class IOUState implements ContractState {
         this.participants = participants;
     }
 
-    public IOUState(int amount, String currency, MemberX500Name drawee, MemberX500Name drawer, MemberX500Name payee, MemberX500Name payer, String payee_reg, String drawee_reg, IssuerRole issuerRole, LocalDate issueDate, LocalDate dueDate, List<String> endorsements, String termsAndConditions, List<PublicKey> participants) {
+    public IOUState(int amount, String currency, MemberX500Name drawee, MemberX500Name drawer, MemberX500Name payee, LocalDate issueDate, LocalDate dueDate, List<String> endorsements, String termsAndConditions, List<PublicKey> participants) {
         this.amount = amount;
         this.currency = currency;
         this.drawee = drawee;
         this.drawer = drawer;
         this.payee = payee;
-        this.payer = payer;
-        this.payee_reg = payee_reg;
-        this.drawee_reg = drawee_reg;
-        this.issuerRole = issuerRole;
         this.issueDate = convertToUTC(issueDate);
         this.dueDate = convertToUTC(dueDate);
         this.acceptance = false;
@@ -108,22 +94,6 @@ public class IOUState implements ContractState {
 
     public MemberX500Name getPayee() {
         return payee;
-    }
-
-    public MemberX500Name getPayer() {
-        return payer;
-    }
-
-    public String getPayeeReg() {
-        return payee_reg;
-    }
-
-    public String getDraweeReg() {
-        return drawee_reg;
-    }
-
-    public IssuerRole getIssuerRole() {
-        return issuerRole;
     }
 
     public ZonedDateTime getIssueDate() {
@@ -174,12 +144,12 @@ public class IOUState implements ContractState {
     // Helper method for settle flow
     public IOUState pay(int amountToPay) {
         int newAmountPaid = this.amount - amountToPay;
-        return new IOUState(newAmountPaid, currency, drawee, drawer, payee, payer, payee_reg, drawee_reg, issuerRole, issueDate, dueDate, acceptance, availisation, paid, endorsements, boeDocs, termsAndConditions, iso2022Message, linearId, participants);
+        return new IOUState(newAmountPaid, currency, drawee, drawer, payee, issueDate, dueDate, acceptance, availisation, paid, endorsements, boeDocs, termsAndConditions, iso2022Message, linearId, participants);
     }
 
     // Helper method for transfer flow
     public IOUState withNewDrawee(MemberX500Name newDrawee, List<PublicKey> newParticipants) {
-        return new IOUState(amount, currency, newDrawee, drawer, payee, payer, payee_reg, drawee_reg, issuerRole, issueDate, dueDate, acceptance, availisation, paid, endorsements, boeDocs, termsAndConditions, iso2022Message, linearId, newParticipants);
+        return new IOUState(amount, currency, newDrawee, drawer, payee, issueDate, dueDate, acceptance, availisation, paid, endorsements, boeDocs, termsAndConditions, iso2022Message, linearId, newParticipants);
     }
 
     // Helper method to convert LocalDate to ZonedDateTime in UTC

@@ -4,10 +4,7 @@ import com.r3.developers.samples.obligation.states.IOUState;
 import net.corda.v5.base.exceptions.CordaRuntimeException;
 import net.corda.v5.ledger.utxo.Command;
 import net.corda.v5.ledger.utxo.Contract;
-import net.corda.v5.ledger.utxo.ContractState;
 import net.corda.v5.ledger.utxo.transaction.UtxoLedgerTransaction;
-
-import java.security.PublicKey;
 
 public class IOUContract implements Contract {
 
@@ -31,7 +28,7 @@ public class IOUContract implements Contract {
         // requireThat(!output.getDrawee().getOrganisation().isEmpty(), "The drawee must not be empty.");
         // requireThat(!output.getDrawer().getOrganisation().isEmpty(), "The drawer must not be empty.");
         // requireThat(!output.getPayee().getOrganisation().isEmpty(), "The payee must not be empty.");
-
+        
         // Switches case based on the command
         if (command.getClass() == IOUContract.Issue.class) {
             // Rules applied only to transactions with the Issue Command

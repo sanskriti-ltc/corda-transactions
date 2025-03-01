@@ -23,7 +23,9 @@ import org.slf4j.LoggerFactory;
 import java.security.PublicKey;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
@@ -62,18 +64,30 @@ public class IOUIssueFlow implements ClientStartableFlow {
 
             // Get MemberInfos for the Vnode running the flow and the otherMember.
             MemberInfo myInfo = memberLookup.myInfo();
-            MemberInfo lenderInfo = requireNonNull(
-                    memberLookup.lookup(MemberX500Name.parse(flowArgs.getLender())),
-                    "MemberLookup can't find otherMember specified in flow arguments."
+            MemberInfo draweeInfo = requireNonNull(
+                    memberLookup.lookup(MemberX500Name.parse(flowArgs.getDrawee())),
+                    "MemberLookup can't find drawee specified in flow arguments."
             );
+            MemberInfo payeeInfo = requireNonNull(
+                    memberLookup.lookup(MemberX500Name.parse(flowArgs.getPayee())),
+                    "MemberLookup can't find payee specified in flow arguments."
+            );
+
             log.info("PASS 0");
             // Create the IOUState from the input arguments and member information.
             IOUState iou = new IOUState(
                     Integer.parseInt(flowArgs.getAmount()),
-                    lenderInfo.getName(),
+                    flowArgs.getCurrency(),
+                    draweeInfo.getName(),
                     myInfo.getName(),
-                    Arrays.asList(myInfo.getLedgerKeys().get(0), lenderInfo.getLedgerKeys().get(0))
+                    payeeInfo.getName(),
+                    LocalDate.parse(flowArgs.getIssueDate().toString()),
+                    LocalDate.parse(flowArgs.getDueDate().toString()),
+                    Arrays.asList(flowArgs.getEndorsements().split(",")),
+                    flowArgs.getTermsAndConditions(),
+                    Arrays.asList(myInfo.getLedgerKeys().get(0), draweeInfo.getLedgerKeys().get(0), payeeInfo.getLedgerKeys().get(0))
             );
+
             log.info("PASS 1");
             // Obtain the Notary name and public key.
             NotaryInfo notary = requireNonNull(
@@ -82,9 +96,10 @@ public class IOUIssueFlow implements ClientStartableFlow {
             );
 
             log.info("PASS 2");
-            PublicKey notaryKey = notary.getPublicKey();;
-            for(MemberInfo memberInfo: memberLookup.lookup()){
-                if(!memberInfo.getLedgerKeys().isEmpty()) {
+
+            PublicKey notaryKey = notary.getPublicKey();
+            for (MemberInfo memberInfo : memberLookup.lookup()) {
+                if (!memberInfo.getLedgerKeys().isEmpty()) {
                     if (Objects.equals(
                             memberInfo.getMemberProvidedContext().get("corda.notary.service.name"),
                             notary.getName().toString())) {
@@ -93,13 +108,14 @@ public class IOUIssueFlow implements ClientStartableFlow {
                     }
                 }
             }
+
             log.info("PASS 3");
             // Note, in Java CorDapps only unchecked RuntimeExceptions can be thrown not
             // declared checked exceptions as this changes the method signature and breaks override.
-            if(notaryKey == null) {
+            if (notaryKey == null) {
                 throw new CordaRuntimeException("No notary PublicKey found");
-
             }
+
             log.info("PASS 4");
             // Use UTXOTransactionBuilder to build up the draft transaction.
             UtxoTransactionBuilder txBuilder = ledgerService.createTransactionBuilder()
@@ -108,17 +124,18 @@ public class IOUIssueFlow implements ClientStartableFlow {
                     .addOutputState(iou)
                     .addCommand(new IOUContract.Issue())
                     .addSignatories(iou.getParticipants());
+
             log.info("PASS 5");
             // Convert the transaction builder to a UTXOSignedTransaction and sign with this Vnode's first Ledger key.
             // Note, toSignedTransaction() is currently a placeholder method, hence being marked as deprecated.
             @SuppressWarnings("DEPRECATION")
             UtxoSignedTransaction signedTransaction = txBuilder.toSignedTransaction();
-
+            
             // Call FinalizeIOUSubFlow which will finalise the transaction.
             // If successful the flow will return a String of the created transaction id,
             // if not successful it will return an error message.
-            return flowEngine.subFlow(new FinalizeIOUFlow.FinalizeIOU(signedTransaction, Arrays.asList(lenderInfo.getName())));
-        }
+            return flowEngine.subFlow(new FinalizeIOUFlow.FinalizeIOU(signedTransaction, Arrays.asList(draweeInfo.getName(), payeeInfo.getName())));
+        } 
         // Catch any exceptions, log them and rethrow the exception.
         catch (Exception e) {
             log.warn("Failed to process utxo flow for request body " + requestBody + " because: " + e.getMessage());
@@ -132,8 +149,14 @@ RequestBody for triggering the flow via http-rpc:
     "clientRequestId": "createiou-1",
     "flowClassName": "com.r3.developers.samples.obligation.workflows.IOUIssueFlow",
     "requestBody": {
-        "amount":"20",
-        "lender":"CN=Bob, OU=Test Dept, O=R3, L=London, C=GB"
-        }
+        "amount": "1000",
+        "currency": "INR",
+        "drawee": "CN=LBG Bank, OU=Banking Dept, O=Lloyds Banking Group, L=London, C=GB",
+        "payee": "CN=Global Exports, OU=Exports Dept, O=Global Exports, L=London, C=GB",
+        "issueDate": "2024-02-20",
+        "dueDate": "2025-09-30",
+        "endorsements": [],
+        "termsAndConditions": "Payment due on demand or by the specified due date. Interest rate of 5% per annum if unpaid by due date"
+    }
 }
- */
+*/
