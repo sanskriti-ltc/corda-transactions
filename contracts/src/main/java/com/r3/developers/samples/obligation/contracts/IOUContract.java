@@ -10,8 +10,9 @@ public class IOUContract implements Contract {
 
     //IOU Commands
     public static class Issue implements Command { }
+    public static class Accept implements Command { }
+    public static class Compliance implements Command { }
     public static class Settle implements Command { }
-    public static class Transfer implements Command { }
 
     @Override
     public void verify(UtxoLedgerTransaction transaction) {
@@ -33,8 +34,11 @@ public class IOUContract implements Contract {
         if (command.getClass() == IOUContract.Issue.class) {
             // Rules applied only to transactions with the Issue Command
             requireThat(transaction.getOutputContractStates().size() == 1, "Only one output state should be created when issuing an IOU.");
-        } else if (command.getClass() == IOUContract.Transfer.class) {
-            // Rules applied only to transactions with the Transfer Command
+        } else if (command.getClass() == IOUContract.Accept.class) {
+            // Rules applied only to transactions with the Accept Command
+            requireThat(transaction.getInputContractStates().size() > 0, "There must be one input IOU.");
+        } else if (command.getClass() == IOUContract.Compliance.class) {
+            // Rules applied only to transactions with the Compliance Command
             requireThat(transaction.getInputContractStates().size() > 0, "There must be one input IOU.");
         } else if (command.getClass() == IOUContract.Settle.class) {
             // Rules applied only to transactions with the Settle Command

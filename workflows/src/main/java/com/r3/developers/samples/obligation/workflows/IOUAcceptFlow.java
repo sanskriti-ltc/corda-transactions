@@ -7,6 +7,7 @@ import net.corda.v5.application.flows.ClientRequestBody;
 import net.corda.v5.application.flows.ClientStartableFlow;
 import net.corda.v5.application.flows.CordaInject;
 import net.corda.v5.application.flows.FlowEngine;
+
 import net.corda.v5.application.marshalling.JsonMarshallingService;
 import net.corda.v5.application.membership.MemberLookup;
 import net.corda.v5.base.annotations.Suspendable;
@@ -29,9 +30,9 @@ import java.util.UUID;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
-public class IOUTransferFlow implements ClientStartableFlow {
+public class IOUAcceptFlow implements ClientStartableFlow {
 
-    private final static Logger log = LoggerFactory.getLogger(IOUTransferFlow.class);
+    private final static Logger log = LoggerFactory.getLogger(IOUAcceptFlow.class);
 
     // Injects the JsonMarshallingService to read and populate JSON parameters.
     @CordaInject
@@ -52,39 +53,39 @@ public class IOUTransferFlow implements ClientStartableFlow {
     @Override
     @Suspendable
     public String call(ClientRequestBody requestBody) {
-        log.info("IOUTransferFlow.call() called");
+        log.info("IOUAcceptFlow.call() called");
 
         try {
             // Obtain the deserialized input arguments to the flow from the requestBody.
-            IOUTransferFlowArgs flowArgs = requestBody.getRequestBodyAs(jsonMarshallingService, IOUTransferFlowArgs.class);
+            IOUAcceptFlowArgs flowArgs = requestBody.getRequestBodyAs(jsonMarshallingService, IOUAcceptFlowArgs.class);
 
             // Get flow args from the input JSON
             UUID iouID = flowArgs.getIouID();
+            Boolean payeeAcceptance = flowArgs.getPayeeAcceptance();
 
             //query the IOU input
             List<StateAndRef<IOUState>> iouStateAndRefs = ledgerService.findUnconsumedStatesByExactType(IOUState.class,100, Instant.now()).getResults();
             List<StateAndRef<IOUState>> iouStateAndRefsWithId = iouStateAndRefs.stream()
                     .filter(sar -> sar.getState().getContractState().getLinearId().equals(iouID)).collect(toList());
+
             if (iouStateAndRefsWithId.size() != 1) throw new CordaRuntimeException("Multiple or zero IOU states with id " + iouID + " found");
             StateAndRef<IOUState> iouStateAndRef = iouStateAndRefsWithId.get(0);
             IOUState iouInput = iouStateAndRef.getState().getContractState();
 
             //flow logic checks
             MemberInfo myInfo = memberLookup.myInfo();
-            if (!(myInfo.getName().equals(iouInput.getLender()))) throw new CordaRuntimeException("Only IOU lender can transfer the IOU.");
-
-            // Get MemberInfos for the Vnode running the flow and the otherMember.
-            MemberInfo newLenderInfo = requireNonNull(
-                    memberLookup.lookup(MemberX500Name.parse(flowArgs.getNewLender())),
-                    "MemberLookup can't find otherMember specified in flow arguments."
+            if (!(myInfo.getName().equals(iouInput.getPayee()))) throw new CordaRuntimeException("Only IOU payee can settle the IOU.");
+            MemberInfo drawerInfo = requireNonNull(
+                    memberLookup.lookup(iouInput.getDrawer()),
+                    "MemberLookup can't find drawer specified in flow arguments."
             );
-            MemberInfo borrower = requireNonNull(
-                    memberLookup.lookup(iouInput.getBorrower()),
-                    "MemberLookup can't find otherMember specified in flow arguments."
+            MemberInfo draweeInfo = requireNonNull(
+                    memberLookup.lookup(iouInput.getDrawee()),
+                    "MemberLookup can't find drawee specified in flow arguments."
             );
 
             // Create the IOUState from the input arguments and member information.
-            IOUState iouOutput = iouInput.withNewLender(newLenderInfo.getName(), Arrays.asList(borrower.getLedgerKeys().get(0), newLenderInfo.getLedgerKeys().get(0)));
+            IOUState iouOutput = iouInput.accept(payeeAcceptance);
 
             //get notary from input
             MemberX500Name notary = iouStateAndRef.getState().getNotaryName();
@@ -95,8 +96,8 @@ public class IOUTransferFlow implements ClientStartableFlow {
                     .setTimeWindowBetween(Instant.now(), Instant.now().plusMillis(Duration.ofDays(1).toMillis()))
                     .addInputState(iouStateAndRef.getRef())
                     .addOutputState(iouOutput)
-                    .addCommand(new IOUContract.Transfer())
-                    .addSignatories(Arrays.asList(borrower.getLedgerKeys().get(0), newLenderInfo.getLedgerKeys().get(0),myInfo.getLedgerKeys().get(0)));
+                    .addCommand(new IOUContract.Accept())
+                    .addSignatories(iouOutput.getParticipants());
 
             // Convert the transaction builder to a UTXOSignedTransaction and sign with this Vnode's first Ledger key.
             // Note, toSignedTransaction() is currently a placeholder method, hence being marked as deprecated.
@@ -105,7 +106,7 @@ public class IOUTransferFlow implements ClientStartableFlow {
             // Call FinalizeIOUSubFlow which will finalise the transaction.
             // If successful the flow will return a String of the created transaction id,
             // if not successful it will return an error message.
-            return flowEngine.subFlow(new FinalizeIOUFlow.FinalizeIOU(signedTransaction, Arrays.asList(borrower.getName(),newLenderInfo.getName())));
+            return flowEngine.subFlow(new FinalizeIOUFlow.FinalizeIOU(signedTransaction, Arrays.asList(drawerInfo.getName(), draweeInfo.getName())));
         }
         // Catch any exceptions, log them and rethrow the exception.
         catch (Exception e) {
@@ -117,11 +118,13 @@ public class IOUTransferFlow implements ClientStartableFlow {
 /*
 RequestBody for triggering the flow via http-rpc:
 {
-    "clientRequestId": "transferiou-1",
-    "flowClassName": "com.r3.developers.samples.obligation.workflows.IOUTransferFlow",
+    "clientRequestId": "settleiou-1",
+    "flowClassName": "com.r3.developers.samples.obligation.workflows.IOUAcceptFlow",
     "requestBody": {
-        "newLender":"CN=Charlie, OU=Test Dept, O=R3, L=London, C=GB",
+        "payeeAcceptance":"true",
         "iouID":"1ac69d82-804b-487b-9178-ea527d0e4b80"
-        }
+    }
 }
- */
+*/
+
+

@@ -2,9 +2,11 @@ package com.r3.developers.samples.obligation.states;
 
 import com.r3.developers.samples.obligation.contracts.IOUContract;
 import net.corda.v5.base.annotations.ConstructorForDeserialization;
+// import net.corda.core.contracts.SchedulableState;
 import net.corda.v5.base.types.MemberX500Name;
 import net.corda.v5.ledger.utxo.BelongsToContract;
 import net.corda.v5.ledger.utxo.ContractState;
+import net.corda.v5.ledger.utxo.SchedulableState;
 
 import java.security.PublicKey;
 import java.time.LocalDate;
@@ -12,9 +14,10 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.ArrayList;
 
 @BelongsToContract(IOUContract.class)
-public class IOUState implements ContractState {
+public class IOUState implements ContractState, SchedulableState {
 
     // Private variables
     private final int amount;
@@ -141,15 +144,33 @@ public class IOUState implements ContractState {
         return participants;
     }
 
+    // Override nextScheduledActivity to return the scheduled time
+    @Override
+    public ZonedDateTime getNextScheduledActivity() {
+        return this.dueDate;
+    }
+
+    // Helper method for settle flow
+    public IOUState accept(Boolean payeeAcceptance) {
+        return new IOUState(amount, currency, drawee, drawer, payee, issueDate, dueDate, payeeAcceptance, availisation, paid, endorsements, boeDocs, termsAndConditions, iso2022Message, linearId, participants);
+    }
+
+    // Helper method for settle flow
+    public IOUState avalise(Boolean avaliseStatus) {
+        return new IOUState(amount, currency, drawee, drawer, payee, issueDate, dueDate, acceptance, avaliseStatus, paid, endorsements, boeDocs, termsAndConditions, iso2022Message, linearId, participants);
+    }
+
     // Helper method for settle flow
     public IOUState pay(int amountToPay) {
         int newAmountPaid = this.amount - amountToPay;
         return new IOUState(newAmountPaid, currency, drawee, drawer, payee, issueDate, dueDate, acceptance, availisation, paid, endorsements, boeDocs, termsAndConditions, iso2022Message, linearId, participants);
     }
 
-    // Helper method for transfer flow
-    public IOUState withNewDrawee(MemberX500Name newDrawee, List<PublicKey> newParticipants) {
-        return new IOUState(amount, currency, newDrawee, drawer, payee, issueDate, dueDate, acceptance, availisation, paid, endorsements, boeDocs, termsAndConditions, iso2022Message, linearId, newParticipants);
+    // Helper method for including participants flow
+    public IOUState addParticipants(List<PublicKey> newParticipants) {
+        List<PublicKey> combinedParticipants = new ArrayList<>(this.participants);
+        combinedParticipants.addAll(newParticipants);
+        return new IOUState(amount, currency, drawee, drawer, payee, issueDate, dueDate, acceptance, availisation, paid, endorsements, boeDocs, termsAndConditions, iso2022Message, linearId, combinedParticipants);
     }
 
     // Helper method to convert LocalDate to ZonedDateTime in UTC

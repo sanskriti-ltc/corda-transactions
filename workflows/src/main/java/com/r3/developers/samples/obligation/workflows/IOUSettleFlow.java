@@ -61,7 +61,6 @@ public class IOUSettleFlow implements ClientStartableFlow {
 
             // Get flow args from the input JSON
             UUID iouID = flowArgs.getIouID();
-            int amountSettle = Integer.parseInt(flowArgs.getAmountSettle());
 
             //query the IOU input
             List<StateAndRef<IOUState>> iouStateAndRefs = ledgerService.findUnconsumedStatesByExactType(IOUState.class,100, Instant.now()).getResults();
@@ -74,14 +73,19 @@ public class IOUSettleFlow implements ClientStartableFlow {
 
             //flow logic checks
             MemberInfo myInfo = memberLookup.myInfo();
-            if (!(myInfo.getName().equals(iouInput.getBorrower()))) throw new CordaRuntimeException("Only IOU borrower can settle the IOU.");
-            MemberInfo lenderInfo = requireNonNull(
-                    memberLookup.lookup(iouInput.getLender()),
+            if (!(myInfo.getName().equals(iouInput.getPayee()))) throw new CordaRuntimeException("Only IOU payee can settle the IOU.");
+            MemberInfo drawerInfo = requireNonNull(
+                    memberLookup.lookup(iouInput.getDrawer()),
                     "MemberLookup can't find otherMember specified in flow arguments."
             );
 
+            // Check if the IOU is accepted, avalised, and the due date is reached
+            if (!iouInput.getAcceptance()) throw new CordaRuntimeException("IOU must be accepted before settlement.");
+            if (!iouInput.getAvailisation()) throw new CordaRuntimeException("IOU must be avalised before settlement.");
+            if (iouInput.getDueDate().isAfter(Instant.now())) throw new CordaRuntimeException("IOU due date has not been reached yet.");
+
             // Create the IOUState from the input arguments and member information.
-            IOUState iouOutput = iouInput.pay(amountSettle);
+            IOUState iouOutput = iouInput.pay(iouInput.getAmount());
 
             //get notary from input
             MemberX500Name notary = iouStateAndRef.getState().getNotaryName();
@@ -102,7 +106,7 @@ public class IOUSettleFlow implements ClientStartableFlow {
             // Call FinalizeIOUSubFlow which will finalise the transaction.
             // If successful the flow will return a String of the created transaction id,
             // if not successful it will return an error message.
-            return flowEngine.subFlow(new FinalizeIOUFlow.FinalizeIOU(signedTransaction, Arrays.asList(lenderInfo.getName())));
+            return flowEngine.subFlow(new FinalizeIOUFlow.FinalizeIOU(signedTransaction, Arrays.asList(drawerInfo.getName())));
         }
         // Catch any exceptions, log them and rethrow the exception.
         catch (Exception e) {
@@ -117,11 +121,9 @@ RequestBody for triggering the flow via http-rpc:
     "clientRequestId": "settleiou-1",
     "flowClassName": "com.r3.developers.samples.obligation.workflows.IOUSettleFlow",
     "requestBody": {
-        "amountSettle":"10",
         "iouID":" ** fill in id **"
     }
 }
-1ac69d82-804b-487b-9178-ea527d0e4b80
 */
 
 

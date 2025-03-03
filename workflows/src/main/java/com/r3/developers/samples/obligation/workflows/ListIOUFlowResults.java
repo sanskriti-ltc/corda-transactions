@@ -1,25 +1,43 @@
 package com.r3.developers.samples.obligation.workflows;
 
+import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.UUID;
 
-// A class to hold the deserialized arguments required to start the flow.
 public class ListIOUFlowResults {
 
     private UUID id;
     private int amount;
-    private String borrower;
-    private String lender;
-    private int paid;
+    private String currency;
+    private String drawee;
+    private String drawer;
+    private String payee;
+    private ZonedDateTime issueDate;
+    private ZonedDateTime dueDate;
+    private String acceptance;
+    private String availisation;
+    private List<String> endorsements;
+    private String boeDocs;
+    private String termsAndConditions;
+    private String iso2022Message;
 
-    public ListIOUFlowResults() {
-    }
+    public ListIOUFlowResults() {}
 
-    public ListIOUFlowResults(UUID id, int amount, String borrower, String lender, int paid) {
+    public ListIOUFlowResults(UUID id, int amount, String currency, String drawee, String drawer, String payee, String issueDate, String dueDate, String acceptance, String availisation, List<String> endorsements, String boeDocs, String termsAndConditions, String iso2022Message) {
         this.id = id;
         this.amount = amount;
-        this.borrower = borrower;
-        this.lender = lender;
-        this.paid = paid;
+        this.currency = currency;
+        this.drawee = drawee;
+        this.drawer = drawer;
+        this.payee = payee;
+        this.issueDate = issueDate;
+        this.dueDate = dueDate;
+        this.acceptance = acceptance;
+        this.availisation = availisation;
+        this.endorsements = endorsements;
+        this.boeDocs = boeDocs;
+        this.termsAndConditions = termsAndConditions;
+        this.iso2022Message = iso2022Message;
     }
 
     public UUID getId() {
@@ -30,15 +48,51 @@ public class ListIOUFlowResults {
         return amount;
     }
 
-    public String getBorrower() {
-        return borrower;
+    public String getCurrency() {
+        return currency;
     }
 
-    public String getLender() {
-        return lender;
+    public String getDrawee() {
+        return drawee;
     }
 
-    public int getPaid() {
-        return paid;
+    public String getDrawer() {
+        return drawer;
+    }
+
+    public String getPayee() {
+        return payee;
+    }
+
+    public String getIssueDate() {
+        return issueDate;
+    }
+
+    public String getDueDate() {
+        return dueDate;
+    }
+
+    public String getAcceptance() {
+        return acceptance;
+    }
+
+    public String getAvailisation() {
+        return availisation;
+    }
+
+    public List<String> getEndorsements() {
+        return endorsements;
+    }
+
+    public String getBoeDocs() {
+        return boeDocs;
+    }
+
+    public String getTermsAndConditions() {
+        return termsAndConditions;
+    }
+
+    public String getIso2022Message() {
+        return iso2022Message;
     }
 }

@@ -20,7 +20,7 @@
     "cpi": "MyCorDapp"
   },
   {
-    "x500Name": "CN=BOE, OU=CommercialBank, O=Bank of England, L=London, C=GB",
+    "x500Name": "CN=BOE, OU=RegulatorBank, O=Bank of England, L=London, C=GB",
     "cpi": "MyCorDapp"
   },
   {
