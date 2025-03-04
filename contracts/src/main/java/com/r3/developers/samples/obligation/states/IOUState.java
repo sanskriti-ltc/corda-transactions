@@ -161,7 +161,9 @@ public class IOUState implements ContractState {
     // Helper method for settle flow
     public IOUState pay(int amountToPay) {
         int newAmountPaid = this.amount - amountToPay;
-        return new IOUState(newAmountPaid, currency, drawee, drawer, payee, issueDate, dueDate, acceptance, availisation, paid, endorsements, boeDocs, termsAndConditions, iso2022Message, linearId, participants);
+        
+        Boolean paidStatus = true;
+        return new IOUState(newAmountPaid, currency, drawee, drawer, payee, issueDate, dueDate, acceptance, availisation, paidStatus, endorsements, boeDocs, termsAndConditions, iso2022Message, linearId, participants);
     }
 
     // Helper method for including participants flow

@@ -14,8 +14,9 @@ public class ListIOUFlowResults {
     private String payee;
     private ZonedDateTime issueDate;
     private ZonedDateTime dueDate;
-    private String acceptance;
-    private String availisation;
+    private Boolean acceptance;
+    private Boolean availisation;
+    private Boolean paid;
     private List<String> endorsements;
     private String boeDocs;
     private String termsAndConditions;
@@ -23,7 +24,7 @@ public class ListIOUFlowResults {
 
     public ListIOUFlowResults() {}
 
-    public ListIOUFlowResults(UUID id, int amount, String currency, String drawee, String drawer, String payee, ZonedDateTime issueDate, ZonedDateTime dueDate, String acceptance, String availisation, List<String> endorsements, String boeDocs, String termsAndConditions, String iso2022Message) {
+    public ListIOUFlowResults(UUID id, int amount, String currency, String drawee, String drawer, String payee, ZonedDateTime issueDate, ZonedDateTime dueDate, Boolean acceptance, Boolean availisation, Boolean paid, List<String> endorsements, String boeDocs, String termsAndConditions, String iso2022Message) {
         this.id = id;
         this.amount = amount;
         this.currency = currency;
@@ -72,12 +73,16 @@ public class ListIOUFlowResults {
         return dueDate;
     }
 
-    public String getAcceptance() {
+    public Boolean getAcceptance() {
         return acceptance;
     }
 
-    public String getAvailisation() {
+    public Boolean getAvailisation() {
         return availisation;
+    }
+
+    public Boolean getPaid() {
+        return paid;
     }
 
     public List<String> getEndorsements() {

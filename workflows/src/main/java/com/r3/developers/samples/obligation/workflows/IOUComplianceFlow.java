@@ -86,22 +86,12 @@ public class IOUComplianceFlow implements ClientStartableFlow {
             // Get notary from input
             MemberX500Name notary = iouStateAndRef.getState().getNotaryName();
 
-            // Ensure only initiating member can send the transaction
-            MemberInfo myInfo = memberLookup.myInfo();
-            if (!myInfo.getName().toString().equals(iouInput.getDrawer())) {
-                throw new CordaRuntimeException("Only drawer can send the transaction for compliance.");
-            }
-
             // Ensure that the token is accepted
             if(!iouInput.getAcceptance())
             {
                 throw new CordaRuntimeException("Only accepted token can be send for compliance");
             }
 
-            MemberInfo drawerBankInfo = requireNonNull(
-                    memberLookup.lookup(MemberX500Name.parse(flowArgs.getDrawerBank())),
-                    "MemberLookup can't find drawerBank specified in flow arguments."
-            );
             MemberInfo INRegulatorInfo = requireNonNull(
                     memberLookup.lookup(MemberX500Name.parse("CN=RBI Bank, OU=Banking Dept, O=Reserve Bank of India, L=India, C=IN")),
                     "MemberLookup can't find INRegulator specified in flow arguments."
@@ -111,7 +101,7 @@ public class IOUComplianceFlow implements ClientStartableFlow {
                     "MemberLookup can't find GBRegulator specified in flow arguments."
             );
 
-            List<PublicKey> newParticipants = Arrays.asList(drawerBankInfo.getLedgerKeys().get(0), INRegulatorInfo.getLedgerKeys().get(0), GBRegulatorInfo.getLedgerKeys().get(0));
+            List<PublicKey> newParticipants = Arrays.asList(INRegulatorInfo.getLedgerKeys().get(0), GBRegulatorInfo.getLedgerKeys().get(0));
 
             // Create the IOUState from the input arguments and member information.
             IOUState iouOutput = iouInput.avalise(true).addParticipants(newParticipants);
@@ -129,7 +119,7 @@ public class IOUComplianceFlow implements ClientStartableFlow {
             UtxoSignedTransaction signedTransaction = txBuilder.toSignedTransaction();
 
             // Call FinalizeIOU subFlow which will finalize the transaction.
-            List<MemberX500Name> otherMembers = Arrays.asList(drawerBankInfo.getName(), INRegulatorInfo.getName(), GBRegulatorInfo.getName());
+            List<MemberX500Name> otherMembers = Arrays.asList(INRegulatorInfo.getName(), GBRegulatorInfo.getName());
             return flowEngine.subFlow(new FinalizeIOUFlow.FinalizeIOU(signedTransaction, otherMembers));
         }
         // Catch any exceptions, log them and rethrow the exception.
@@ -143,11 +133,10 @@ public class IOUComplianceFlow implements ClientStartableFlow {
 /*
 RequestBody for triggering the flow via http-rpc:
 {
-    "clientRequestId": "sendAndReceive-1",
+    "clientRequestId": "complianceiou-1",
     "flowClassName": "com.r3.developers.samples.obligation.workflows.IOUComplianceFlow",
     "requestBody": {
-        "iouID": "IOU ID HERE",
-        "drawerBank": "CN=ICICI Bank, OU=Banking Dept, O=ICICI Bank, L=India, C=IN",
+        "iouID": "f5314873-6935-4481-ab24-c0b31c79f58a",
     }
 }
 */

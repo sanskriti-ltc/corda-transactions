@@ -118,7 +118,7 @@ public class IOUAcceptFlow implements ClientStartableFlow {
 /*
 RequestBody for triggering the flow via http-rpc:
 {
-    "clientRequestId": "settleiou-1",
+    "clientRequestId": "acceptiou-1",
     "flowClassName": "com.r3.developers.samples.obligation.workflows.IOUAcceptFlow",
     "requestBody": {
         "payeeAcceptance":"true",

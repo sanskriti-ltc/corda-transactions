@@ -1,5 +1,7 @@
 package com.r3.developers.samples.obligation.workflows;
 
+import java.util.List;
+
 // A class to hold the deserialized arguments required to start the flow.
 public class IOUIssueFlowArgs {
     private String amount;
@@ -8,13 +10,13 @@ public class IOUIssueFlowArgs {
     private String drawee;
     private String issueDate;
     private String dueDate;
-    private String endorsements;
+    private List<String> endorsements;
     private String termsAndConditions;
 
     public IOUIssueFlowArgs() {
     }
 
-    public IOUIssueFlowArgs(String amount, String currency, String payee, String drawee, String issueDate, String dueDate, String endorsements, String termsAndConditions) {
+    public IOUIssueFlowArgs(String amount, String currency, String payee, String drawee, String issueDate, String dueDate, List<String> endorsements, String termsAndConditions) {
         this.amount = amount;
         this.currency = currency;
         this.payee = payee;
@@ -73,11 +75,11 @@ public class IOUIssueFlowArgs {
         this.dueDate = dueDate;
     }
 
-    public String getEndorsements() {
+    public List<String> getEndorsements() {
         return endorsements;
     }
 
-    public void setEndorsements(String endorsements) {
+    public void setEndorsements(List<String> endorsements) {
         this.endorsements = endorsements;
     }
 

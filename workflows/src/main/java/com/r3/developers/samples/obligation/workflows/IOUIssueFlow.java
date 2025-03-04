@@ -83,7 +83,7 @@ public class IOUIssueFlow implements ClientStartableFlow {
                     payeeInfo.getName(),
                     LocalDate.parse(flowArgs.getIssueDate().toString()),
                     LocalDate.parse(flowArgs.getDueDate().toString()),
-                    Arrays.asList(flowArgs.getEndorsements().split(",")),
+                    flowArgs.getEndorsements(),
                     flowArgs.getTermsAndConditions(),
                     Arrays.asList(myInfo.getLedgerKeys().get(0), draweeInfo.getLedgerKeys().get(0), payeeInfo.getLedgerKeys().get(0))
             );
