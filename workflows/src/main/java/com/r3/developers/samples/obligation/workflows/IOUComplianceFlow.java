@@ -92,6 +92,8 @@ public class IOUComplianceFlow implements ClientStartableFlow {
                 throw new CordaRuntimeException("Only accepted token can be send for compliance");
             }
 
+            //flow logic checks
+            MemberInfo myInfo = memberLookup.myInfo();
             MemberInfo INRegulatorInfo = requireNonNull(
                     memberLookup.lookup(MemberX500Name.parse("CN=RBI Bank, OU=Banking Dept, O=Reserve Bank of India, L=India, C=IN")),
                     "MemberLookup can't find INRegulator specified in flow arguments."
@@ -100,11 +102,23 @@ public class IOUComplianceFlow implements ClientStartableFlow {
                     memberLookup.lookup(MemberX500Name.parse("CN=BOE, OU=Banking Dept, O=Bank of England, L=London, C=GB")),
                     "MemberLookup can't find GBRegulator specified in flow arguments."
             );
+            MemberInfo drawerInfo = requireNonNull(
+                    memberLookup.lookup(iouInput.getDrawer()),
+                    "MemberLookup can't find drawer specified in flow arguments."
+            );
+            MemberInfo draweeInfo = requireNonNull(
+                    memberLookup.lookup(iouInput.getDrawee()),
+                    "MemberLookup can't find drawee specified in flow arguments."
+            );
+            MemberInfo payeeInfo = requireNonNull(
+                    memberLookup.lookup(iouInput.getPayee()),
+                    "MemberLookup can't find payee specified in flow arguments."
+            );
 
             List<PublicKey> newParticipants = Arrays.asList(INRegulatorInfo.getLedgerKeys().get(0), GBRegulatorInfo.getLedgerKeys().get(0));
 
             // Create the IOUState from the input arguments and member information.
-            IOUState iouOutput = iouInput.avalise(true).addParticipants(newParticipants);
+            IOUState iouOutput = iouInput.addParticipants(newParticipants).avalise(true);
 
             // Use UTXOTransactionBuilder to build up the draft transaction.
             UtxoTransactionBuilder txBuilder = ledgerService.createTransactionBuilder()
@@ -119,7 +133,8 @@ public class IOUComplianceFlow implements ClientStartableFlow {
             UtxoSignedTransaction signedTransaction = txBuilder.toSignedTransaction();
 
             // Call FinalizeIOU subFlow which will finalize the transaction.
-            List<MemberX500Name> otherMembers = Arrays.asList(INRegulatorInfo.getName(), GBRegulatorInfo.getName());
+            List<MemberX500Name> allMembers = Arrays.asList(INRegulatorInfo.getName(), GBRegulatorInfo.getName(), drawerInfo.getName(), draweeInfo.getName(), payeeInfo.getName());
+            List<MemberX500Name> otherMembers = allMembers.stream().filter(member -> !member.equals(myInfo.getName())).collect(Collectors.toList());
             return flowEngine.subFlow(new FinalizeIOUFlow.FinalizeIOU(signedTransaction, otherMembers));
         }
         // Catch any exceptions, log them and rethrow the exception.

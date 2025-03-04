@@ -78,6 +78,10 @@ public class IOUSettleFlow implements ClientStartableFlow {
                     memberLookup.lookup(iouInput.getDrawer()),
                     "MemberLookup can't find otherMember specified in flow arguments."
             );
+            MemberInfo INRegulatorInfo = requireNonNull(
+                    memberLookup.lookup(MemberX500Name.parse("CN=RBI Bank, OU=Banking Dept, O=Reserve Bank of India, L=India, C=IN")),
+                    "MemberLookup can't find INRegulator specified in flow arguments."
+            );
 
             // Check if the IOU is accepted, avalised, and the due date is reached
             if (!iouInput.getAcceptance()) throw new CordaRuntimeException("IOU must be accepted before settlement.");
@@ -105,7 +109,7 @@ public class IOUSettleFlow implements ClientStartableFlow {
             // Call FinalizeIOUSubFlow which will finalise the transaction.
             // If successful the flow will return a String of the created transaction id,
             // if not successful it will return an error message.
-            return flowEngine.subFlow(new FinalizeIOUFlow.FinalizeIOU(signedTransaction, Arrays.asList(drawerInfo.getName())));
+            return flowEngine.subFlow(new FinalizeIOUFlow.FinalizeIOU(signedTransaction, Arrays.asList(drawerInfo.getName(), INRegulatorInfo.getName())));
         }
         // Catch any exceptions, log them and rethrow the exception.
         catch (Exception e) {
