@@ -1,26 +1,26 @@
 [
   {
-    "x500Name": "CN=ABC Imports, OU=Firm, O=ABC Imports, L=Mumbai, C=IN",
+    "x500Name": "CN=ABC Imports, OU=Imports Dept, O=ABC Imports, L=India, C=IN",
     "cpi": "MyCorDapp"
   },
   {
-    "x500Name": "CN=Global Exports, OU=Firm, O=Global Exports, L=London, C=GB",
+    "x500Name": "CN=Global Exports, OU=Exports Dept, O=Global Exports, L=London, C=GB",
     "cpi": "MyCorDapp"
   },
   {
-    "x500Name": "CN=ICICI, OU=CommercialBank, O=ICICI Bank, L=Delhi, C=IN",
+    "x500Name": "CN=ICICI Bank, OU=Banking Dept, O=ICICI Bank, L=India, C=IN",
     "cpi": "MyCorDapp"
   },
   {
-    "x500Name": "CN=RBI, OU=RegulatorBank, O=Reserve Bank of India, L=Delhi, C=IN",
+    "x500Name": "CN=RBI Bank, OU=Banking Dept, O=Reserve Bank of India, L=India, C=IN",
     "cpi": "MyCorDapp"
   },
   {
-    "x500Name": "CN=LBG, OU=CommercialBank, O=Lloyds Banking Group, L=London, C=GB",
+    "x500Name": "CN=LBG Bank, OU=Banking Dept, O=Lloyds Banking Group, L=London, C=GB",
     "cpi": "MyCorDapp"
   },
   {
-    "x500Name": "CN=BOE, OU=RegulatorBank, O=Bank of England, L=London, C=GB",
+    "x500Name": "CN=BOE, OU=Banking Dept, O=Bank of England, L=London, C=GB",
     "cpi": "MyCorDapp"
   },
   {

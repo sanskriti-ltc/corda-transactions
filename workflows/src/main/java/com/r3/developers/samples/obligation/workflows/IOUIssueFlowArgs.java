@@ -5,7 +5,7 @@ public class IOUIssueFlowArgs {
     private String amount;
     private String currency;
     private String payee;
-    private String drawer;
+    private String drawee;
     private String issueDate;
     private String dueDate;
     private String endorsements;
@@ -14,11 +14,11 @@ public class IOUIssueFlowArgs {
     public IOUIssueFlowArgs() {
     }
 
-    public IOUIssueFlowArgs(String amount, String currency, String payee, String drawer, String issueDate, String dueDate, String endorsements, String termsAndConditions) {
+    public IOUIssueFlowArgs(String amount, String currency, String payee, String drawee, String issueDate, String dueDate, String endorsements, String termsAndConditions) {
         this.amount = amount;
         this.currency = currency;
         this.payee = payee;
-        this.drawer = drawer;
+        this.drawee = drawee;
         this.issueDate = issueDate;
         this.dueDate = dueDate;
         this.endorsements = endorsements;
@@ -49,12 +49,12 @@ public class IOUIssueFlowArgs {
         this.payee = payee;
     }
 
-    public String getDrawer() {
-        return drawer;
+    public String getDrawee() {
+        return drawee;
     }
 
-    public void setDrawer(String drawer) {
-        this.drawer = drawer;
+    public void setDrawee(String drawer) {
+        this.drawee = drawer;
     }
 
     public String getIssueDate() {

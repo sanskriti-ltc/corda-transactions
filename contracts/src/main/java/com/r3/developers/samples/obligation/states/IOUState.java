@@ -6,7 +6,7 @@ import net.corda.v5.base.annotations.ConstructorForDeserialization;
 import net.corda.v5.base.types.MemberX500Name;
 import net.corda.v5.ledger.utxo.BelongsToContract;
 import net.corda.v5.ledger.utxo.ContractState;
-import net.corda.v5.ledger.utxo.SchedulableState;
+// import net.corda.v5.ledger.utxo.SchedulableState;
 
 import java.security.PublicKey;
 import java.time.LocalDate;
@@ -17,7 +17,8 @@ import java.util.UUID;
 import java.util.ArrayList;
 
 @BelongsToContract(IOUContract.class)
-public class IOUState implements ContractState, SchedulableState {
+// public class IOUState implements ContractState, SchedulableState {
+public class IOUState implements ContractState {
 
     // Private variables
     private final int amount;
@@ -25,9 +26,6 @@ public class IOUState implements ContractState, SchedulableState {
     private final MemberX500Name drawee;
     private final MemberX500Name drawer;
     private final MemberX500Name payee;
-    private final MemberX500Name payer;
-    private final String payee_reg;
-    private final String drawee_reg;
     private final ZonedDateTime issueDate;
     private final ZonedDateTime dueDate;
     private final Boolean acceptance;
@@ -144,11 +142,11 @@ public class IOUState implements ContractState, SchedulableState {
         return participants;
     }
 
-    // Override nextScheduledActivity to return the scheduled time
-    @Override
-    public ZonedDateTime getNextScheduledActivity() {
-        return this.dueDate;
-    }
+    // // Override nextScheduledActivity to return the scheduled time
+    // @Override
+    // public ZonedDateTime getNextScheduledActivity() {
+    //     return this.dueDate;
+    // }
 
     // Helper method for settle flow
     public IOUState accept(Boolean payeeAcceptance) {

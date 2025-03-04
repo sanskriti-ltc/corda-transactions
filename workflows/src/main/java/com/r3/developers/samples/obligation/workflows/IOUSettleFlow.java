@@ -82,7 +82,6 @@ public class IOUSettleFlow implements ClientStartableFlow {
             // Check if the IOU is accepted, avalised, and the due date is reached
             if (!iouInput.getAcceptance()) throw new CordaRuntimeException("IOU must be accepted before settlement.");
             if (!iouInput.getAvailisation()) throw new CordaRuntimeException("IOU must be avalised before settlement.");
-            if (iouInput.getDueDate().isAfter(Instant.now())) throw new CordaRuntimeException("IOU due date has not been reached yet.");
 
             // Create the IOUState from the input arguments and member information.
             IOUState iouOutput = iouInput.pay(iouInput.getAmount());

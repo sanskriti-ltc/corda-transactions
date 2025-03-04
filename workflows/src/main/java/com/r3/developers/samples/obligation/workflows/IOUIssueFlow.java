@@ -153,8 +153,8 @@ RequestBody for triggering the flow via http-rpc:
         "currency": "INR",
         "drawee": "CN=LBG Bank, OU=Banking Dept, O=Lloyds Banking Group, L=London, C=GB",
         "payee": "CN=Global Exports, OU=Exports Dept, O=Global Exports, L=London, C=GB",
-        "issueDate": "2024-02-20 17-30-00",
-        "dueDate": "2025-09-30 09-45-00",
+        "issueDate": "2024-02-20",
+        "dueDate": "2025-09-30",
         "endorsements": [],
         "termsAndConditions": "Payment due on demand or by the specified due date. Interest rate of 5% per annum if unpaid by due date"
     }

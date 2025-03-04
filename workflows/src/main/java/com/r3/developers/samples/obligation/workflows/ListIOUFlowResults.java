@@ -23,7 +23,7 @@ public class ListIOUFlowResults {
 
     public ListIOUFlowResults() {}
 
-    public ListIOUFlowResults(UUID id, int amount, String currency, String drawee, String drawer, String payee, String issueDate, String dueDate, String acceptance, String availisation, List<String> endorsements, String boeDocs, String termsAndConditions, String iso2022Message) {
+    public ListIOUFlowResults(UUID id, int amount, String currency, String drawee, String drawer, String payee, ZonedDateTime issueDate, ZonedDateTime dueDate, String acceptance, String availisation, List<String> endorsements, String boeDocs, String termsAndConditions, String iso2022Message) {
         this.id = id;
         this.amount = amount;
         this.currency = currency;
@@ -64,11 +64,11 @@ public class ListIOUFlowResults {
         return payee;
     }
 
-    public String getIssueDate() {
+    public ZonedDateTime getIssueDate() {
         return issueDate;
     }
 
-    public String getDueDate() {
+    public ZonedDateTime getDueDate() {
         return dueDate;
     }
 

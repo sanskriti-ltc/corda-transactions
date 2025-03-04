@@ -1,11 +1,11 @@
 package com.r3.developers.samples.obligation.workflows;
 
 import com.r3.developers.samples.obligation.states.IOUState;
+import com.r3.developers.samples.obligation.contracts.IOUContract;
 import net.corda.v5.application.crypto.DigestService;
 import net.corda.v5.application.flows.*;
 import net.corda.v5.application.marshalling.JsonMarshallingService;
 import net.corda.v5.application.membership.MemberLookup;
-import net.corda.v5.application.messaging.FlowMessaging;
 import net.corda.v5.application.messaging.FlowSession;
 import net.corda.v5.base.annotations.Suspendable;
 import net.corda.v5.base.exceptions.CordaRuntimeException;
@@ -14,6 +14,7 @@ import net.corda.v5.crypto.SecureHash;
 import net.corda.v5.ledger.utxo.StateRef;
 import net.corda.v5.ledger.utxo.UtxoLedgerService;
 import net.corda.v5.ledger.utxo.transaction.UtxoSignedTransaction;
+import net.corda.v5.ledger.utxo.transaction.UtxoTransactionBuilder;
 import net.corda.v5.ledger.utxo.StateAndRef;
 import net.corda.v5.membership.MemberInfo;
 import org.slf4j.Logger;
@@ -34,9 +35,6 @@ import static java.util.stream.Collectors.toList;
 public class IOUComplianceFlow implements ClientStartableFlow {
 
     private final static Logger log = LoggerFactory.getLogger(IOUComplianceFlow.class);
-
-    @CordaInject
-    private FlowMessaging flowMessaging;
 
     // Injects the JsonMarshallingService to read and populate JSON parameters.
     @CordaInject
@@ -97,7 +95,7 @@ public class IOUComplianceFlow implements ClientStartableFlow {
             // Ensure that the token is accepted
             if(!iouInput.getAcceptance())
             {
-                throw new CordaRuntimeException("Only accepted token can be send for compliance")
+                throw new CordaRuntimeException("Only accepted token can be send for compliance");
             }
 
             MemberInfo drawerBankInfo = requireNonNull(
@@ -105,11 +103,11 @@ public class IOUComplianceFlow implements ClientStartableFlow {
                     "MemberLookup can't find drawerBank specified in flow arguments."
             );
             MemberInfo INRegulatorInfo = requireNonNull(
-                    memberLookup.lookup(MemberX500Name.parse("CN=RBI, OU=RegulatorBank, O=Reserve Bank of India, L=Delhi, C=IN")),
+                    memberLookup.lookup(MemberX500Name.parse("CN=RBI Bank, OU=Banking Dept, O=Reserve Bank of India, L=India, C=IN")),
                     "MemberLookup can't find INRegulator specified in flow arguments."
             );
             MemberInfo GBRegulatorInfo = requireNonNull(
-                    memberLookup.lookup(MemberX500Name.parse("CN=BOE, OU=RegulatorBank, O=Bank of England, L=London, C=GB")),
+                    memberLookup.lookup(MemberX500Name.parse("CN=BOE, OU=Banking Dept, O=Bank of England, L=London, C=GB")),
                     "MemberLookup can't find GBRegulator specified in flow arguments."
             );
 
@@ -149,6 +147,7 @@ RequestBody for triggering the flow via http-rpc:
     "flowClassName": "com.r3.developers.samples.obligation.workflows.IOUComplianceFlow",
     "requestBody": {
         "iouID": "IOU ID HERE",
-        "drawerBank": "CN=ICICI, OU=CommercialBank, O=ICICI Bank, L=Delhi, C=IN",
+        "drawerBank": "CN=ICICI Bank, OU=Banking Dept, O=ICICI Bank, L=India, C=IN",
     }
 }
+*/

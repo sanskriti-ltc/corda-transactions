@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.time.format.DateTimeFormatter;
 
 public class ListIOUFlow implements ClientStartableFlow {
 
@@ -34,9 +33,6 @@ public class ListIOUFlow implements ClientStartableFlow {
 
         log.info("ListIOUFlow.call() called");
 
-        // Define the date formatter
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
-
         // Queries the VNode's vault for unconsumed states and converts the result to a serializable DTO.
         List<StateAndRef<IOUState>> states = utxoLedgerService.findUnconsumedStatesByExactType(IOUState.class, 100, Instant.now()).getResults();
         List<ListIOUFlowResults> results = states.stream().map(stateAndRef ->
@@ -47,8 +43,8 @@ public class ListIOUFlow implements ClientStartableFlow {
                         stateAndRef.getState().getContractState().getDrawee().toString(),
                         stateAndRef.getState().getContractState().getDrawer().toString(),
                         stateAndRef.getState().getContractState().getPayee().toString(),
-                        stateAndRef.getState().getContractState().getIssueDate().format(formatter),
-                        stateAndRef.getState().getContractState().getDueDate().format(formatter),
+                        stateAndRef.getState().getContractState().getIssueDate(),
+                        stateAndRef.getState().getContractState().getDueDate(),
                         stateAndRef.getState().getContractState().getAcceptance().toString(),
                         stateAndRef.getState().getContractState().getAvailisation().toString(),
                         stateAndRef.getState().getContractState().getEndorsements(),
