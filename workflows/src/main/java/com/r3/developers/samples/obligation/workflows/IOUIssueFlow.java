@@ -64,6 +64,10 @@ public class IOUIssueFlow implements ClientStartableFlow {
 
             // Get MemberInfos for the Vnode running the flow and the otherMember.
             MemberInfo myInfo = memberLookup.myInfo();
+            MemberInfo drawerInfo = requireNonNull(
+                    memberLookup.lookup(MemberX500Name.parse(flowArgs.getDrawer())),
+                    "MemberLookup can't find drawee specified in flow arguments."
+            );
             MemberInfo draweeInfo = requireNonNull(
                     memberLookup.lookup(MemberX500Name.parse(flowArgs.getDrawee())),
                     "MemberLookup can't find drawee specified in flow arguments."
@@ -151,8 +155,9 @@ RequestBody for triggering the flow via http-rpc:
     "requestBody": {
         "amount": "1000",
         "currency": "INR",
-        "drawee": "CN=LBG Bank, OU=Banking Dept, O=Lloyds Banking Group, L=London, C=GB",
-        "payee": "CN=Global Exports, OU=Exports Dept, O=Global Exports, L=London, C=GB",
+        "drawer": "CN=Global Exports, OU=Exports Dept, O=Global Exports, L=London, C=GB",
+        "drawee": "CN=ICICI Bank, OU=Banking Dept, O=ICICI Bank, L=India, C=IN",
+        "payee": "ABC Imports, OU=Imports Dept, O=ABC Imports, L=India, C=IN",
         "issueDate": "2024-02-20",
         "dueDate": "2025-09-30",
         "endorsements": [],
