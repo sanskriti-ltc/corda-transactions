@@ -1,120 +1,209 @@
-# sendAndReceiveTransaction
+# corda-transactions
 
 When working with the Corda platform, every transaction is stored in the participants'
 vaults. The vault is a where all the transactions involving the owner are securely saved.
 Each vault is unique and accessible only by its owner,
 serving as a ledger to track all the owner's transactions.
-However, there are scenarios where you may want a third party to receive a copy of the
-transaction. This is where the SendAndRecieveTransaction function becomes essential.
-For instance, if Alice conducts a transaction with Bob and wants Charlie to receive a copy,
-Alice can simply run a flow using the transaction ID to send a copy to Charlie's vault.
-Another application of this function can be an automated reporting tool,
-which can be utilized at the end of each transaction finalizing flow to automatically
-report to a specific vnode. This functionality can act like a bookkeeper,
-meticulously tracking each transaction and ensuring accurate record-keeping.
-`
-
-### Setting up
-
-1. We will begin our test deployment with clicking the `startCorda`. This task will load up the combined Corda workers in docker.
-   A successful deployment will allow you to open the REST APIs at: https://localhost:8888/api/v5_2/swagger#/. You can test out some
-   functions to check connectivity. (GET /cpi function call should return an empty list as for now.)
-2. We will now deploy the cordapp with a click of `5-vNodeSetup` task. Upon successful deployment of the CPI, the GET /cpi function call should now return the meta data of the cpi you just upload
 
 
+This repo is the usecase of using RLN DLT Network using Corda 2.5 for Bill of Exchange Settlement. The members are already registered whose list is available in [`static-network-config.json`](config\static-network-config.json)
 
-### Running the app
-
-In Corda 5, flows will be triggered via `POST /flow/{holdingidentityshorthash}` and flow result will need to be view at `GET /flow/{holdingidentityshorthash}/{clientrequestid}`
-* holdingidentityshorthash: the id of the network participants, ie Bob, Alice, Charlie. You can view all the short hashes of the network member with another gradle task called `ListVNodes`
-* clientrequestid: the id you specify in the flow requestBody when you trigger a flow.
-
-#### Step 1: Create IOUState between two parties
-Pick a VNode identity to initiate the IOU creation, and get its short hash. (Let's pick Alice. Don't pick Bob because Bob is the person who alice will borrow from).
-
-Go to `POST /flow/{holdingidentityshorthash}`, enter the identity short hash(Alice's hash) and request body:
+### Backend
+1. Clone repository [`https://github.com/sanskriti-ltc/corda-transactions`](https://github.com/sanskriti-ltc/corda-transactions)
+2. Install `java17`
+3. Install `corda-cli 5.2.0.0`
+4. Change the corda cli path in [docker-compose](config\combined-worker-compose.yaml)
+5. run command:
+```shell
+docker-compose -f .\config\combined-worker-compose.yaml up --build
 ```
+6. Run the command
+```shell
+./gradlew clean build
+./gradlew tasks
+./gradlew vNodesSetup
+```
+7. Run following command to get all vNodes info
+```shell
+./gradlew listVNodes
+```
+8. API list will be available at [`https://localhost:8888/api/v5_2/swagger#`](https://localhost:8888/api/v5_2/swagger#)
+
+# Frontend
+1. Clone repository [`https://github.com/priyankasahu23/IBillExchange`](https://github.com/priyankasahu23/IBillExchange)
+2. Open cloned repo in terminal
+3. go to the `ui` folder
+```
+cd ui
+```
+4. Run `docker-compose` command
+```
+docker-compose up --build -d
+```
+5. Open UI in the browser  [`https://localhost:4200`](https://localhost:4200)
+
+## Running the Demo Flows
+
+### Issue flow POST
+- **Performed by**: Seller
+- **Action**: Issue a Token
+- **Vaults updated**:
+	- Seller
+	- Buyer
+	- Buyer Bank
+- **Request Body**:
+```JSON
 {
     "clientRequestId": "createiou-1",
     "flowClassName": "com.r3.developers.samples.obligation.workflows.IOUIssueFlow",
     "requestBody": {
-        "amount":"20",
-        "lender":"CN=Bob, OU=Test Dept, O=R3, L=London, C=GB"
-        }
-}
-```
-
-After trigger the create-IOU flow, hop to `GET /flow/{holdingidentityshorthash}/{clientrequestid}` and enter the short hash(Alice's hash) and client request id to view the flow result
-The stateRef of the transaction will be returned as a result of the flow query. Which is the "flowResult".
-
-#### Step 2: Sending a copy of the transaction to a third party.
-If a member needs to share a copy of their transaction with another member,
-they can do so using the process outlined below. For instance,
-if Alice wishes to send a copy of the transaction to Dave,
-we can execute the following request body with her short hash:
-
-```
-{
-    "clientRequestId": "sendAndRecieve-1",
-    "flowClassName": "com.r3.developers.samples.obligation.workflows.sendAndRecieveTransactionFlow",
-    "requestBody": {
-        "stateRef": "STATEREF ID HERE",
-        "members": ["CN=Dave, OU=Test Dept, O=R3, L=London, C=GB"],
-        "forceBackchain": "false"
+        "amount": "1000",
+        "currency": "INR",
+        "drawee": "CN=ICICI Bank, OU=Banking Dept, O=ICICI Bank, L=India, C=IN",
+        "payee": "CN=ABC Imports, OU=Imports Dept, O=ABC Imports, L=India, C=IN",
+        "issueDate": "2024-02-20",
+        "dueDate": "2025-09-30",
+        "endorsements": [],
+        "termsAndConditions": "Payment due on demand or by the specified due date. Interest rate of 5% per annum if unpaid by due date"
     }
 }
 ```
-
-Ensure to replace the stateRef variable with the stateRef of the transaction. The stateRef will be found when you run the GET call,
-QueryAll in the swaggerAPI. The stateRef is labeled as `flowResult` in response body， begins with SHA-256D:XXXXX..
+![After Issue](AfterIssue.png)
+Above image is showcasing the vault (postgres db) entries in below format
 ```
-[
-  {
-    "holdingIdentityShortHash": "A93A019B324E",
-    "clientRequestId": "createiou-1",
-    "flowId": "26ea3f95-141b-4aaa-9b58-e3a685dc54d3",
-    "flowStatus": "COMPLETED",
-    "flowResult": "SHA-256D:B3D87C8B446C277B5658BBB2A18DC7491539D898B70F074418878091AE315B4A",
-    "flowError": null,
-    "timestamp": "2024-07-08T04:37:16.175Z"
-  }
-]
+Seller vault | Regulatory Bank Vault
+------------- ----------------
+Buyer Vault  | Buyer Bank Vault
 ```
-After running this flow Dave will have the transaction in his vault.
 
-
-Results
-
-Currently, Alice has two transactions stored in her vault.
-The transaction we aim to send to Charlie is identified by the ID SHA-256D:8DFDD672….
-You can view Alice's transactions in the image provided below:
-
-<p align="center">
-  <img width="1000" alt="Encumbrance Flow" src="./aliceVault.png">
-</p>
-
-On the other hand, Charlie’s vault currently holds no transactions,
-as illustrated in the image below:
-
-<p align="center">
-  <img width="1000" alt="Encumbrance Flow" src="./charlieBefore.png">
-</p>
-
-Once Alice executes the flow, Charlie’s vault is updated to include the transaction,
-which is displayed as follows:
-
-<p align="center">
-  <img width="1000" alt="Encumbrance Flow" src="./charlieAfter.png">
-</p>
-
-All images of the vault were sourced through DBeaver by establishing a connection
-to the Cordapp using PostgreSQL. The credentials utilized for this connection are as follows:
-
-POSTGRES_DB = cordacluster <br>
-POSTGRES_USER = postgres <br>
-POSTGRES_PASSWORD = password
+### List flow POST
+- **Performed by**: Anyone
+- **Action**: List tokens in a vault
+- **Request Body**:
+```JSON
+{
+    "clientRequestId": "list-1",
+    "flowClassName": "com.r3.developers.samples.obligation.workflows.ListIOUFlow",
+    "requestBody": {}
+}
+```
+### List flow result GET
+- **Performed by**: Anyone
+- **Action**: List tokens in a vault
+- **Response Body**:
+```JSON
+{ 
+	"holdingIdentityShortHash": "473B8EB1ED00", 
+	"clientRequestId": "list-1", 
+	"flowId": "3151884a-4bc8-4097-ac79-d456fe4132c9", 
+	"flowStatus": "COMPLETED", 
+	"json": [ 
+		{ 
+			"id": "b6a7e1b3-7da7-44ab-9466-0dfe6e874c51", 
+			"amount": 1000, 
+			"currency": "INR", 
+			"drawee": "CN=ICICI Bank, OU=Banking Dept, O=ICICI Bank, L=India, C=IN", 
+			"drawer": "CN=Global Exports, OU=Exports Dept, O=Global Exports, L=London, C=GB", 
+			"payee": "CN=ABC Imports, OU=Imports Dept, O=ABC Imports, L=India, C=IN", 
+			"issueDate": 1708387200, 
+			"dueDate": 1759190400, 
+			"acceptance": false, 
+			"availisation": false, 
+			"paid": null, 
+			"endorsements": [], 
+			"boeDocs": "automatedBoeDocs", 
+			"termsAndConditions": "Payment due on demand or by the specified due date. Interest rate of 5% per annum if unpaid by due date", 
+			"iso2022Message": "automatedIso2022Message" 
+		} 
+	], 
+	"flowError": null, 
+	"timestamp": "2025-03-05T02:10:38.594Z" 
+}
+```
+### Accept flow POST
+- **Performed by**: Buyer
+- **Action**: Accept a Token
+- **Vaults updated**:
+	- Seller
+	- Buyer
+	- Buyer Bank
+- **Request Body**:
+```JSON
+{
+    "clientRequestId": "acceptiou-1",
+    "flowClassName": "com.r3.developers.samples.obligation.workflows.IOUAcceptFlow",
+    "requestBody": {
+        "payeeAcceptance":"true",
+        "iouID":"b6a7e1b3-7da7-44ab-9466-0dfe6e874c51"
+    }
+}
+```
+![After Accept](AfterAccept.png)
+Above image is showcasing the vault (postgres db) entries in below format
+```
+Seller vault | Regulatory Bank Vault
+------------- ----------------
+Buyer Vault  | Buyer Bank Vault
+```
+### Compliance flow POST
+- **Performed by**: Anyone
+- **Action**: Avalises a token and updates the regulatory bodies for compliance
+- **Vaults updated**:
+	- Seller
+	- Buyer
+	- Buyer Bank
+	- Regulatory Bodies
+- **Request Body**:
+```JSON
+{
+    "clientRequestId": "complianceiou-1",
+    "flowClassName": "com.r3.developers.samples.obligation.workflows.IOUComplianceFlow",
+    "requestBody": {
+        "iouID": "b6a7e1b3-7da7-44ab-9466-0dfe6e874c51"
+    }
+}
+```
+![After Compliance](AfterCompliance.png)
+Above image is showcasing the vault (postgres db) entries in below format
+```
+Seller vault | Regulatory Bank Vault
+------------- ----------------
+Buyer Vault  | Buyer Bank Vault
+```
+### Settle flow POST
+- **Performed by**: Buyer
+- **Action**: Token is settle (paid) by buyer to seller
+- **Vaults updated**:
+	- Seller
+	- Buyer
+- **Request Body**:
+```JSON
+{
+    "clientRequestId": "settleiou-1",
+    "flowClassName": "com.r3.developers.samples.obligation.workflows.IOUSettleFlow",
+    "requestBody": {
+        "iouID":"b6a7e1b3-7da7-44ab-9466-0dfe6e874c51"
+    }
+}
+```
+![After Settlement](AfterSettle.png)
+Above image is showcasing the vault (postgres db) entries in below format
+```
+Seller vault | Regulatory Bank Vault
+------------- ----------------
+Buyer Vault  | Buyer Bank Vault
+```
+All images of the vault were sourced through `Database Client JDBC` extension in `VSCode` by establishing a connection
+to the `CorDapp` using `PostgreSQL`. The credentials utilized for this connection are as follows:
+```yaml
+POSTGRES_DB=cordacluster
+POSTGRES_USER=user
+POSTGRES_PASSWORD=password
+```
 
 To access the vault, navigate through the hierarchy in
-PostgreSQL: Databases > cordacluster > Schemas > vnode_vault_(HASH_ID_OF_VNODE) >
-Tables > utxo_transaction. To view the transactions,
+PostgreSQL: `Databases > cordacluster > Schemas > vnode_vault_(HASH_ID_OF_VNODE) >
+Tables > utxo_transaction`. To view the transactions,
 simply double-click on utxo_transaction.
+
+#### Reference Repository: [`https://github.com/corda/corda5-samples`](https://github.com/corda/corda5-samples)
