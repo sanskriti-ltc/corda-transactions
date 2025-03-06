@@ -8,6 +8,8 @@ serving as a ledger to track all the owner's transactions.
 
 This repo is the usecase of using RLN DLT Network using Corda 2.5 for Bill of Exchange Settlement. The members are already registered whose list is available in [`static-network-config.json`](config\static-network-config.json)
 
+## Setup
+
 ### Backend
 1. Clone repository [`https://github.com/sanskriti-ltc/corda-transactions`](https://github.com/sanskriti-ltc/corda-transactions)
 2. Install `java17`
