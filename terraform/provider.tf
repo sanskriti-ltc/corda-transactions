@@ -1,28 +1,14 @@
-variable "project_id" {
-  description = "trade-finance-452012"
+terraform {
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 5.0"
+    }
+  }
+  required_version = ">= 1.3.0"
 }
 
-variable "region" {
-  description = "GCP region"
-  default     = "us-central1"
-}
-
-variable "cluster_name" {
-  description = "GKE Cluster Name"
-  default     = "corda-cluster"
-}
-
-variable "db_instance_name" {
-  description = "Cloud SQL Instance Name"
-  default     = "corda-db"
-}
-
-variable "db_username" {
-  description = "Cloud SQL Database Username"
-  default     = "corda-user"
-}
-
-variable "db_password" {
-  description = "Cloud SQL Database Password"
-  default     = "cordapassword"
+provider "google" {
+  project = var.project_id
+  region  = var.region
 }
