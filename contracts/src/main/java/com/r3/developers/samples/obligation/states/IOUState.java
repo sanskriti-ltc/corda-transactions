@@ -67,7 +67,7 @@ public class IOUState implements ContractState {
         this.issueDate = convertToUTC(issueDate);
         this.dueDate = convertToUTC(dueDate);
         this.acceptance = false;
-        this.availisation = false;
+        this.availisation = true;
         this.paid = false;
         this.endorsements = endorsements;
         this.boeDocs = "automatedBoeDocs";
@@ -160,8 +160,8 @@ public class IOUState implements ContractState {
 
     // Helper method for settle flow
     public IOUState pay(int amountToPay) {
-        int newAmountPaid = (int)(this.amount * 0.0090);
-        String newCurrency = "GBP";
+        int newAmountPaid = (int)(this.amount * 113.48);
+        String newCurrency = "INR";
         Boolean paidStatus = true;
         return new IOUState(newAmountPaid, newCurrency, drawee, drawer, payee, issueDate, dueDate, acceptance, availisation, paidStatus, endorsements, boeDocs, termsAndConditions, iso2022Message, linearId, participants);
     }

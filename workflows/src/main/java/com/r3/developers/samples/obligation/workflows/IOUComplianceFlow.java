@@ -95,7 +95,7 @@ public class IOUComplianceFlow implements ClientStartableFlow {
             //flow logic checks
             MemberInfo myInfo = memberLookup.myInfo();
             MemberInfo INRegulatorInfo = requireNonNull(
-                    memberLookup.lookup(MemberX500Name.parse("CN=RBI Bank, OU=Banking Dept, O=Reserve Bank of India, L=India, C=IN")),
+                    memberLookup.lookup(MemberX500Name.parse("CN=RBI, OU=Banking Dept, O=Reserve Bank of India, L=India, C=IN")),
                     "MemberLookup can't find INRegulator specified in flow arguments."
             );
             MemberInfo GBRegulatorInfo = requireNonNull(

@@ -12,7 +12,7 @@
     "cpi": "MyCorDapp"
   },
   {
-    "x500Name": "CN=RBI Bank, OU=Banking Dept, O=Reserve Bank of India, L=India, C=IN",
+    "x500Name": "CN=RBI, OU=Banking Dept, O=Reserve Bank of India, L=India, C=IN",
     "cpi": "MyCorDapp"
   },
   {
@@ -21,6 +21,10 @@
   },
   {
     "x500Name": "CN=BOE, OU=Banking Dept, O=Bank of England, L=London, C=GB",
+    "cpi": "MyCorDapp"
+  },
+  {
+    "x500Name": "CN=Issuer, OU=Issuer Dept, O=Issuer, L=London, C=GB",
     "cpi": "MyCorDapp"
   },
   {
